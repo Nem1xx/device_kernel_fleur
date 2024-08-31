@@ -70,6 +70,22 @@
 #define DRIVER_MAJOR 1
 #define DRIVER_MINOR 0
 
+<<<<<<< HEAD
+=======
+atomic_t resume_pending;
+wait_queue_head_t resume_wait_q;
+
+#ifndef MTK_DRM_DELAY_PRESENT_FENCE_SOF
+atomic_t _mtk_fence_idx[3] = {ATOMIC_INIT(-1), ATOMIC_INIT(-1),
+	ATOMIC_INIT(-1)};
+#ifndef MTK_DRM_DELAY_PRESENT_FENCE
+atomic_t _mtk_fence_update_event[3] = {ATOMIC_INIT(0), ATOMIC_INIT(0),
+	ATOMIC_INIT(0)};
+wait_queue_head_t _mtk_fence_wq[3];
+#endif
+#endif
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 static atomic_t top_isr_ref; /* irq power status protection */
 static atomic_t top_clk_ref; /* top clk status protection*/
 static spinlock_t top_clk_lock; /* power status protection*/
@@ -3975,6 +3991,20 @@ static int mtk_drm_remove(struct platform_device *pdev)
 }
 
 #ifdef CONFIG_PM_SLEEP
+
+static int mtk_drm_sys_prepare(struct device *dev)
+{
+	atomic_inc(&resume_pending);
+	return 0;
+}
+
+static void mtk_drm_sys_complete(struct device *dev)
+{
+	atomic_set(&resume_pending, 0);
+	wake_up_all(&resume_wait_q);
+	return;
+}
+
 static int mtk_drm_sys_suspend(struct device *dev)
 {
 	struct mtk_drm_private *private = dev_get_drvdata(dev);
@@ -4017,8 +4047,12 @@ static int mtk_drm_sys_resume(struct device *dev)
 }
 #endif
 
-static SIMPLE_DEV_PM_OPS(mtk_drm_pm_ops, mtk_drm_sys_suspend,
-			 mtk_drm_sys_resume);
+static const struct dev_pm_ops mtk_drm_pm_ops = {
+	.prepare = mtk_drm_sys_prepare,
+	.complete = mtk_drm_sys_complete,
+	.suspend = mtk_drm_sys_suspend,
+	.resume = mtk_drm_sys_resume,
+};
 
 static const struct of_device_id mtk_drm_of_ids[] = {
 	{.compatible = "mediatek,mt2701-mmsys",

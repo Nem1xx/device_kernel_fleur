@@ -345,20 +345,33 @@ int ged_bridge_ge_get(
 	int header_size = sizeof(struct GED_BRIDGE_OUT_GE_GET);
 
 	if (psGET_IN->uint32_offset < 0 ||
+<<<<<<< HEAD:drivers/gpu/mediatek/ged/src/ged_ge.c
 		psGET_IN->uint32_offset >= (GE_MAX_REGION_SIZE / sizeof(uint32_t)) ||
 		psGET_IN->uint32_size <= 0 ||
 		psGET_IN->uint32_size > (GE_MAX_REGION_SIZE / sizeof(uint32_t))) {
 		GED_PDEBUG("[%s] invalid offset(%d) or size(%d)",
+=======
+			psGET_IN->uint32_offset >= 0x20000000ULL ||
+			psGET_IN->uint32_size < 0 ||
+			psGET_IN->uint32_size >= 0x20000000ULL) {
+		pr_info("[%s] invalid offset(%d) or size(%d)",
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/gpu/ged/src/ged_ge.c
 				__func__,
 				psGET_IN->uint32_offset,
 				psGET_IN->uint32_size);
 		return -EFAULT;
 	}
+<<<<<<< HEAD:drivers/gpu/mediatek/ged/src/ged_ge.c
 	// check output buffer alloc size
 	if (output_buffer_size !=
 		header_size +
 		(psGET_IN->uint32_size * sizeof(uint32_t))) {
 		GED_PDEBUG("[%s] output_buffer_size (%d byte) != header_size + u32_size (%d byte)",
+=======
+	if ((output_package_size - header_size) !=
+		psGET_IN->uint32_size * sizeof(uint32_t)) {
+		pr_info("[%s] data (%d byte) != u32_size (%d byte)",
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/gpu/ged/src/ged_ge.c
 			__func__,
 			(unsigned int)output_buffer_size,
 			(unsigned int)(header_size +
@@ -383,20 +396,33 @@ int ged_bridge_ge_set(
 	int header_size = sizeof(struct GED_BRIDGE_IN_GE_SET);
 
 	if (psSET_IN->uint32_offset < 0 ||
+<<<<<<< HEAD:drivers/gpu/mediatek/ged/src/ged_ge.c
 		psSET_IN->uint32_offset >= (GE_MAX_REGION_SIZE / sizeof(uint32_t)) ||
 		psSET_IN->uint32_size <= 0 ||
 		psSET_IN->uint32_size > (GE_MAX_REGION_SIZE / sizeof(uint32_t))) {
 		GED_PDEBUG("[%s] invalid offset(%d) or size(%d)",
+=======
+			psSET_IN->uint32_offset >= 0x20000000ULL ||
+			psSET_IN->uint32_size < 0 ||
+			psSET_IN->uint32_size >= 0x20000000ULL) {
+		pr_info("[%s] invalid offset(%d) or size(%d)",
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/gpu/ged/src/ged_ge.c
 				__func__,
 				psSET_IN->uint32_offset,
 				psSET_IN->uint32_size);
 		return -EFAULT;
 	}
+<<<<<<< HEAD:drivers/gpu/mediatek/ged/src/ged_ge.c
 	// check input buffer alloc size
 	if (input_buffer_size !=
 		header_size +
 		(psSET_IN->uint32_size * sizeof(uint32_t))) {
 		GED_PDEBUG("[%s] input_buffer_size (%d byte) != header_size + u32_size (%d byte)",
+=======
+	if ((input_package_size - header_size) !=
+		psSET_IN->uint32_size * sizeof(uint32_t)) {
+		pr_info("[%s] data (%d byte) != u32_size (%d byte)",
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/gpu/ged/src/ged_ge.c
 			__func__,
 			(unsigned int)input_buffer_size,
 			(unsigned int)(header_size +

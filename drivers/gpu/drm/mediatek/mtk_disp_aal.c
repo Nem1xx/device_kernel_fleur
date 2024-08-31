@@ -456,8 +456,16 @@ void disp_aal_notify_backlight_changed(int trans_backlight)
 	disp_aal_notify_backlight_log(trans_backlight);
 	//disp_aal_exit_idle(__func__, 1);
 
+<<<<<<< HEAD
 	if (trans_backlight > g_max_backlight)
 		trans_backlight = g_max_backlight;
+=======
+	// FIXME
+	//max_backlight = disp_pwm_get_max_backlight(DISP_PWM0);
+	max_backlight = 2047; //for 11 bit
+	if (bl_1024 > max_backlight)
+		bl_1024 = max_backlight;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	atomic_set(&g_aal_backlight_notified, trans_backlight);
 
