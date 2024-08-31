@@ -2296,11 +2296,16 @@ static long imgsensor_ioctl(
 	}
 
 CAMERA_HW_Ioctl_EXIT:
+<<<<<<< HEAD
 	if (pBuff != NULL) {
 		kfree(pBuff);
 		pBuff = NULL;
 	}
 
+=======
+	if (pBuff != NULL)
+		kfree(pBuff);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return i4RetValue;
 }
 

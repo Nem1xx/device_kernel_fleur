@@ -477,11 +477,16 @@ static long seninf_ioctl(struct file *pfile,
 	}
 
 SENINF_IOCTL_EXIT:
+<<<<<<< HEAD
 	if (pbuff != NULL) {
 		kfree(pbuff);
 		pbuff = NULL;
 	}
 
+=======
+	if (pbuff != NULL)
+		kfree(pbuff);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return ret;
 }
 

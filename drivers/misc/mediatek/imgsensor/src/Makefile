@@ -3,6 +3,10 @@
 subdir-ccflags-y += -I$(srctree)/drivers/i2c/busses/ \
              -I$(srctree)/drivers/misc/mediatek/ccu/inc
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))
 ARCH_MTK_PROJECT := $(subst ",,$(CONFIG_ARCH_MTK_PROJECT))
 
@@ -10,7 +14,12 @@ MTK_PLATFORM_PATH_ROOT := $(srctree)/drivers/misc/mediatek/mach/$(MTK_PLATFORM)
 MTK_PROJECT_PATH_ROOT := $(srctree)/drivers/misc/mediatek/mach/$(MTK_PLATFORM)/$(ARCH_MTK_PROJECT)
 
 ifeq ($(CONFIG_MACH_MT6781),y)
+<<<<<<< HEAD
 CONFIG_MTK_PLATFORM_SENSOR := mt6781
+=======
+$(warning "CONFIG_MACH_MT6781 CONFIG_MTK_PLATFORM_SENSOR = fleur")
+CONFIG_MTK_PLATFORM_SENSOR := fleur
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 else
 CONFIG_MTK_PLATFORM_SENSOR := $(CONFIG_MTK_PLATFORM)
 endif
