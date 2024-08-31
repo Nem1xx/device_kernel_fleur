@@ -660,7 +660,10 @@ static int rndis_set_response(struct rndis_params *params,
 	BufLength = le32_to_cpu(buf->InformationBufferLength);
 	BufOffset = le32_to_cpu(buf->InformationBufferOffset);
 	if ((BufLength > RNDIS_MAX_TOTAL_SIZE) ||
+<<<<<<< HEAD
 		(BufOffset > RNDIS_MAX_TOTAL_SIZE) ||
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		(BufOffset + 8 >= RNDIS_MAX_TOTAL_SIZE))
 			return -EINVAL;
 
