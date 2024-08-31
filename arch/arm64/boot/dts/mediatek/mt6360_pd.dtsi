@@ -4,10 +4,15 @@
  *
  */
 
+<<<<<<< HEAD
 &i2c5 {
 	mt6360_typec: usb_type_c@4e {
 		compatible = "mediatek,usb_type_c";
 		reg = <0x4e>;
+=======
+/ {
+	mt6360_typec: type_c_port0 {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		mt-tcpc,name = "type_c_port0"; /* tcpc_device's name */
 		/* 0: Unknown, 1: SNK, 2: SRC, 3: DRP, 4: Try.SRC, 5: Try.SNK */
 		mt-tcpc,role_def = <5>;
@@ -63,7 +68,11 @@
 			 */
 
 			pd,id-vdo-size = <6>;
+<<<<<<< HEAD
 			pd,id-vdo-data = <0xd14029cf 0x0 0x63600000
+=======
+			pd,id-vdo-data = <0xd54029cf 0x0 0x63600000
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 					  0x41800000 0x0 0x21800000>;
 
 			bat,nr = <1>;

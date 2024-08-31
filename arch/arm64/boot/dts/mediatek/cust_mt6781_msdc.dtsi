@@ -94,8 +94,34 @@
 	sd-uhs-sdr50;
 	sd-uhs-sdr104;
 	sd-uhs-ddr50;
+<<<<<<< HEAD
 	cd-debounce-delay-ms = <2000>;
 	cd-gpios = <&pio 9 GPIO_ACTIVE_LOW>;
+=======
+	mmc-ddr-1_8v;
+	mmc-hs200-1_8v;
+	no-sdio;
+
+#ifndef CONFIG_FPGA_EARLY_PORTING
+	pinctl = <&msdc1_pins_default>;
+	pinctl_sdr104 = <&msdc1_pins_sdr104>;
+	pinctl_sdr50 = <&msdc1_pins_sdr50>;
+	pinctl_ddr50 = <&msdc1_pins_ddr50>;
+	pinctl_hs200 = <&msdc1_pins_hs200>;
+	register_setting = <&msdc1_register_setting_default>;
+#endif
+
+	host_function = /bits/ 8 <MSDC_SD>;
+
+	cd_level = /bits/ 8 <MSDC_CD_HIGH>;
+#ifndef CONFIG_FPGA_EARLY_PORTING
+	cd-gpios = <&pio 9 0>;
+#endif
+
+	status = "okay";
+
+#ifndef CONFIG_FPGA_EARLY_PORTING
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	vmmc-supply = <&mt_pmic_vmch_ldo_reg>;
 	vqmmc-supply = <&mt_pmic_vmc_ldo_reg>;
 	no-mmc;
