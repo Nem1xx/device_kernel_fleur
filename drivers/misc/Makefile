@@ -2,7 +2,10 @@
 #
 # Makefile for misc devices that really don't fit anywhere else.
 #
+# board id
+obj-y += board_id.o
 
+obj-$(CONFIG_AW8622_HAPTIC)  += aw8622_haptic/
 obj-$(CONFIG_IBM_ASM)		+= ibmasm/
 obj-$(CONFIG_IBMVMC)		+= ibmvmc.o
 obj-$(CONFIG_AD525X_DPOT)	+= ad525x_dpot.o
@@ -34,6 +37,7 @@ obj-$(CONFIG_SENSORS_TSL2550)	+= tsl2550.o
 obj-$(CONFIG_DS1682)		+= ds1682.o
 obj-$(CONFIG_C2PORT)		+= c2port/
 obj-$(CONFIG_HMC6352)		+= hmc6352.o
+obj-$(CONFIG_SIMTRAY_STATUS)	+= simtray.o
 obj-y				+= eeprom/
 obj-y				+= cb710/
 obj-$(CONFIG_SPEAR13XX_PCIE_GADGET)	+= spear13xx_pcie_gadget.o
@@ -59,4 +63,27 @@ obj-$(CONFIG_PCI_ENDPOINT_TEST)	+= pci_endpoint_test.o
 obj-$(CONFIG_OCXL)		+= ocxl/
 obj-$(CONFIG_MISC_RTSX)		+= cardreader/
 obj-$(CONFIG_UID_SYS_STATS)	+= uid_sys_stats.o
+<<<<<<< HEAD
 obj-y				+= mediatek/
+=======
+obj-$(CONFIG_ANT_CHECK)		+= ant_check.o
+obj-$(CONFIG_MEMORY_STATE_TIME)	+= memory_state_time.o
+obj-$(CONFIG_MEDIATEK_SOLUTION) += mediatek/
+lkdtm-$(CONFIG_LKDTM)		+= lkdtm_core.o
+lkdtm-$(CONFIG_LKDTM)		+= lkdtm_bugs.o
+lkdtm-$(CONFIG_LKDTM)		+= lkdtm_heap.o
+lkdtm-$(CONFIG_LKDTM)		+= lkdtm_perms.o
+lkdtm-$(CONFIG_LKDTM)		+= lkdtm_refcount.o
+lkdtm-$(CONFIG_LKDTM)		+= lkdtm_rodata_objcopy.o
+lkdtm-$(CONFIG_LKDTM)		+= lkdtm_usercopy.o
+
+KCOV_INSTRUMENT_lkdtm_rodata.o	:= n
+CFLAGS_lkdtm_rodata.o		+= $(DISABLE_LTO)
+
+OBJCOPYFLAGS :=
+OBJCOPYFLAGS_lkdtm_rodata_objcopy.o := \
+	--rename-section .text=.rodata,alloc,readonly,load
+targets += lkdtm_rodata.o lkdtm_rodata_objcopy.o
+$(obj)/lkdtm_rodata_objcopy.o: $(obj)/lkdtm_rodata.o FORCE
+	$(call if_changed,objcopy)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
