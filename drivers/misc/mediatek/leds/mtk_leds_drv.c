@@ -91,6 +91,7 @@ static unsigned int limit_flag;
 static unsigned int last_level;
 static unsigned int current_level;
 static DEFINE_MUTEX(bl_level_limit_mutex);
+//unsigned int thermal_current_brightness;
 
 /****************************************************************************
  * external functions for display
@@ -138,7 +139,12 @@ int setMaxbrightness(int max_level, int enable)
 	pr_info("Set max brightness go through AAL\n");
 	disp_bls_set_max_backlight(((((1 << LED_INTERNAL_LEVEL_BIT_CNT) -
 				      1) * max_level + 127) / 255));
+<<<<<<< HEAD
 #endif				/* endif CONFIG_MTK_AAL_SUPPORT */
+=======
+	//disp_aal_notify_backlight_changed(thermal_current_brightness);
+#endif
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return 0;
 }
 EXPORT_SYMBOL(setMaxbrightness);
