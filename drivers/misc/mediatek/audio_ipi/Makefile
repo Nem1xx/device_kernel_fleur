@@ -26,6 +26,7 @@ endif
 endif
 
 ifneq ($(filter y,$(CONFIG_MTK_TINYSYS_SCP_SUPPORT)),)
+<<<<<<< HEAD
 
 ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6785" "mt6781"))
 ifneq ($(filter y, $(CONFIG_MTK_ULTRASND_PROXIMITY)),)
@@ -35,11 +36,14 @@ endif
 endif
 
 ifneq ($(filter y,$(CONFIG_MTK_VOW_IPI_SUPPORT) $(CONFIG_SND_SOC_MTK_SCP_SMARTPA)),)
+=======
+ifneq ($(filter y,$(CONFIG_MTK_VOW_IPI_SUPPORT) $(CONFIG_SND_SOC_MTK_SCP_SMARTPA) $(CONFIG_MTK_ULTRASND_PROXIMITY)),)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 subdir-ccflags-y += -DCONFIG_MTK_AUDIO_CM4_SUPPORT
 CONFIG_MTK_AUDIO_CM4_SUPPORT := y
 endif
 
-ifneq ($(filter y,$(CONFIG_SND_SOC_MTK_SCP_SMARTPA)),)
+ifneq ($(filter y,$(CONFIG_SND_SOC_MTK_SCP_SMARTPA) $(CONFIG_MTK_ULTRASND_PROXIMITY)),)
 subdir-ccflags-y += -DCONFIG_MTK_AUDIO_CM4_DMA_SUPPORT
 endif
 endif
