@@ -11,9 +11,5 @@
 # GNU General Public License for more details.
 #
 
-
-obj-y := systracker_platform.o
-
-ifeq ($(CONFIG_MTK_ENG_BUILD),y)
-CFLAGS_systracker_platform.o := -DDEBUG
-endif
+obj-y += gc02m1_macro_ofilm_mipi_raw.o
+obj-y += gc02m1_macro_ofilm_mipi_raw_eeprom.o
