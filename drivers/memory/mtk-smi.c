@@ -687,7 +687,10 @@ static int mtk_smi_dev_probe(struct platform_device *pdev, const u32 id)
 	u32 reset_tmp, reset_num, offset,
 		comm_reset_tmp, comm_reset_num, comm_offset, comm_clamp_tmp;
 	s32 i;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	if (id > nr_dev) {
 		dev_dbg(&pdev->dev,
