@@ -910,6 +910,12 @@ config ARM64_DMA_IOMMU_ALIGNMENT
 
 endif
 
+config KERNEL_CUSTOM_FACTORY
+        default n
+        bool "Custom for hardware FACTORY_pcb"
+        help
+        Custom for FACTORY_pcb.
+
 config SECCOMP
 	bool "Enable seccomp to safely compute untrusted bytecode"
 	---help---
