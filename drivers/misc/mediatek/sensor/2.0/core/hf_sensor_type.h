@@ -67,8 +67,12 @@ enum {
 	SENSOR_TYPE_OIS,
 	SENSOR_TYPE_FLICKER,
 	SENSOR_TYPE_GYRO_SECONDARY,
+<<<<<<< HEAD
 	SENSOR_TYPE_FLICKER_REAR,
 	SENSOR_TYPE_RGBW_REAR,
+=======
+	SENSOR_TYPE_ELLIPTIC_FUSION,
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	SENSOR_TYPE_SENSOR_MAX,
 };
 
@@ -134,8 +138,12 @@ enum {
 	ID_OIS,
 	ID_FLICKER,
 	ID_GYRO_SECONDARY,
+<<<<<<< HEAD
 	ID_FLICKER_REAR,
 	ID_RGBW_REAR,
+=======
+	ID_ELLIPTIC_FUSION,
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	ID_SENSOR_MAX,
 };
 
