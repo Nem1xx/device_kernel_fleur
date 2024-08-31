@@ -1190,6 +1190,7 @@ struct drm_connector {
 	/** @tile_h_size: horizontal size of this tile. */
 	/** @tile_v_size: vertical size of this tile. */
 	uint16_t tile_h_size, tile_v_size;
+<<<<<<< HEAD
 
 	/**
 	 * @free_node:
@@ -1213,6 +1214,9 @@ struct drm_connector {
 	 * The calculated checksum value of first 127 bytes of associated EDID.
 	 */
 	u8 checksum;
+=======
+	int panel_event;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 };
 
 #define obj_to_connector(x) container_of(x, struct drm_connector, base)
