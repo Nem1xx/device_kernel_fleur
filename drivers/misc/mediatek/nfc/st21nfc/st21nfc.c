@@ -1,21 +1,28 @@
+// SPDX-License-Identifier: GPL-2.0-only
 /*
- * Copyright (C) 2016 ST Microelectronics S.A.
+ * NFC Controller Driver
+ * Copyright (C) 2020 ST Microelectronics S.A.
  * Copyright (C) 2010 Stollmann E+V GmbH
  * Copyright (C) 2010 Trusted Logic S.A.
- *
- * This program is free software; you can redistribute it and/or modify it
- * under the terms and conditions of the GNU General Public License,
- * version 2, as published by the Free Software Foundation.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+<<<<<<< HEAD
 #include "st21nfc.h"
+=======
+
+
+#define DEBUG
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/fs.h>
+#include <linux/version.h>
+#include <linux/slab.h>
+#include <linux/init.h>
+#include <linux/list.h>
+#include <linux/i2c.h>
+#include <linux/irq.h>
+#include <linux/jiffies.h>
+#include <linux/uaccess.h>
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #include <linux/delay.h>
 #include <linux/fs.h>
 #include <linux/gpio.h>
@@ -39,6 +46,7 @@
 
 #include <linux/of.h>
 #include <linux/of_address.h>
+<<<<<<< HEAD
 #include <linux/of_irq.h>
 
 /* Test for kernel version.
@@ -55,6 +63,14 @@
 # define KRNMTKLEGACY_CLK 1
 # define KRNMTKLEGACY_GPIO 1
 #endif
+=======
+#endif
+#include <linux/of_irq.h>
+#include "st21nfc.h"
+
+#include <linux/board_id.h>
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 // Kernel 4.9 on some platforms is using legacy drivers (kernel-4.9-lc)
 // I2C: CONFIG_MACH_MT6735 / 6735M / 6753 / 6580 / 6755 use legacy driver
 // CLOCK: 4.9 has right includes, no need for special handling.
@@ -78,8 +94,20 @@
 #endif
 
 #define MAX_BUFFER_SIZE 260
+<<<<<<< HEAD
 
 #define DRIVER_VERSION "2.2.0.1"
+=======
+#define MAX_SIZE 255
+#define PBF      4
+#define HEADER_LENGTH 3
+#define IDLE_CHARACTER 0x7e
+#define ST21NFC_POWER_STATE_MAX 3
+// wake up for the duration of a typical transaction
+#define WAKEUP_SRC_TIMEOUT (500)
+
+#define DRIVER_VERSION "2.2.0.15"
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 /* define the active state of the WAKEUP pin */
 #define ST21_IRQ_ACTIVE_HIGH 1
@@ -94,7 +122,55 @@ static char *I2CDMAWriteBuf; /*= NULL;*/ /* unnecessary initialise */
 static unsigned int I2CDMAWriteBuf_pa;   /* = NULL; */
 static char *I2CDMAReadBuf; /*= NULL;*/  /* unnecessary initialise */
 static unsigned int I2CDMAReadBuf_pa;    /* = NULL; */
+<<<<<<< HEAD
 #endif					 /* KRNMTKLEGACY_I2C */
+=======
+#endif                                   /* KRNMTKLEGACY_I2C */
+
+static bool enable_debug_log = false;
+static bool bandwidth_test   = false;
+
+/*The enum is used to index a pw_states array, the values matter here*/
+enum st21nfc_power_state {
+	ST21NFC_IDLE = 0,
+	ST21NFC_ACTIVE = 1,
+	ST21NFC_ACTIVE_RW = 2
+};
+
+static const char *const st21nfc_power_state_name[] = {
+
+	"IDLE", "ACTIVE", "ACTIVE_RW"
+};
+
+enum st21nfc_read_state { ST21NFC_HEADER, ST21NFC_PAYLOAD };
+
+struct nfc_sub_power_stats {
+	uint64_t count;
+	uint64_t duration;
+	uint64_t last_entry;
+	uint64_t last_exit;
+};
+
+struct nfc_sub_power_stats_error {
+	/* error transition header --> payload state machine */
+	uint64_t header_payload;
+	/* error transition from an active state when not in idle state */
+	uint64_t active_not_idle;
+	/* error transition from idle state to idle state */
+	uint64_t idle_to_idle;
+	/* warning transition from active_rw state to idle state */
+	uint64_t active_rw_to_idle;
+	/* error transition from active state to active state */
+	uint64_t active_to_active;
+	/* error transition from idle state to active state with notification */
+	uint64_t idle_to_active_ntf;
+	/* error transition from active_rw state to active_rw state */
+	uint64_t act_rw_to_act_rw;
+	/* error transition from idle state to */
+	/* active_rw state with notification   */
+	uint64_t idle_to_active_rw_ntf;
+};
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 /* prototypes */
 static irqreturn_t st21nfc_dev_irq_handler(int irq, void *dev_id);
@@ -136,6 +212,7 @@ struct st21nfc_dev {
 static int st21nfc_loc_set_polaritymode(struct st21nfc_dev *st21nfc_dev,
 					int mode)
 {
+<<<<<<< HEAD
 
 	struct i2c_client *client = st21nfc_dev->platform_data.client;
 	unsigned int irq_type;
@@ -199,6 +276,47 @@ static int st21nfc_loc_set_polaritymode(struct st21nfc_dev *st21nfc_dev,
 }
 
 static void st21nfc_disable_irq(struct st21nfc_dev *st21nfc_dev)
+=======
+#ifndef NO_MTK_CLK_MANAGEMENT
+	/*If use XTAL mode, please remove this function "clk_buf_ctrl" to
+	 * avoid additional power consumption.
+	 */
+	clk_buf_ctrl(CLK_BUF_NFC, true);
+#endif
+	return 0;
+}
+
+/*
+ * Routine to disable clocks
+ */
+static int st21nfc_clock_deselect(struct st21nfc_device *st21nfc_dev) {
+#ifndef NO_MTK_CLK_MANAGEMENT
+	clk_buf_ctrl(CLK_BUF_NFC, false);
+#endif
+	return 0;
+}
+
+static void st21nfc_print_buffer(char *buf, int count) {
+	char tmpStr[MAX_BUFFER_SIZE * 2 + 1] = { 0x00 };
+	int i = 0;
+	for(i = 0; i < count; i++){
+	    snprintf(&tmpStr[i *2], 3, "%02X", buf[i]);
+	}
+	pr_info("%s: %s\n", __func__, tmpStr);
+}
+//vts data compare
+static int  st21nfc_vts_compare(char *buf,int count) {
+	 
+	int i = 0;
+	for(i = 0; i < count; i++){
+	   if(buf[i]!=i) 
+	   {return 0;}
+	}
+	return 1;
+}
+
+static void st21nfc_disable_irq(struct st21nfc_device *st21nfc_dev)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	unsigned long flags;
 
@@ -212,7 +330,13 @@ static void st21nfc_disable_irq(struct st21nfc_dev *st21nfc_dev)
 
 static irqreturn_t st21nfc_dev_irq_handler(int irq, void *dev_id)
 {
+<<<<<<< HEAD
 	struct st21nfc_dev *st21nfc_dev = dev_id;
+=======
+	struct st21nfc_device *st21nfc_dev = dev_id;
+	if (enable_debug_log)
+		pr_info("%s:%d mode %d", __FILE__, __LINE__);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	st21nfc_disable_irq(st21nfc_dev);
 
@@ -225,12 +349,211 @@ static irqreturn_t st21nfc_dev_irq_handler(int irq, void *dev_id)
 static ssize_t st21nfc_dev_read(struct file *filp, char __user *buf,
 				size_t count, loff_t *offset)
 {
+<<<<<<< HEAD
 	struct timeval s1, s2, e;
 	long t;
 	struct st21nfc_dev *st21nfc_dev = container_of(
 		filp->private_data, struct st21nfc_dev, st21nfc_device);
 	char tmp[MAX_BUFFER_SIZE];
 	int ret, pinlev;
+=======
+	struct i2c_client *client = st21nfc_dev->client;
+	struct device *dev = &client->dev;
+	unsigned int irq_type;
+	int ret;
+
+	if (enable_debug_log)
+		pr_info("%s:%d mode %d", __FILE__, __LINE__, mode);
+
+	st21nfc_dev->polarity_mode = mode;
+	/* setup irq_flags */
+	switch (mode) {
+	case IRQF_TRIGGER_RISING:
+		irq_type = IRQ_TYPE_EDGE_RISING;
+		break;
+	case IRQF_TRIGGER_HIGH:
+		irq_type = IRQ_TYPE_LEVEL_HIGH;
+		break;
+	default:
+		irq_type = IRQ_TYPE_EDGE_RISING;
+		break;
+	}
+	if (st21nfc_dev->irq_is_attached) {
+		devm_free_irq(dev, client->irq, st21nfc_dev);
+		st21nfc_dev->irq_is_attached = false;
+	}
+	ret = irq_set_irq_type(client->irq, irq_type);
+	if (ret) {
+		pr_err("%s : set_irq_type failed\n", __func__);
+		return -ENODEV;
+	}
+	/* request irq.  the irq is set whenever the chip has data available
+	 * for reading.  it is cleared when all data has been read.
+	 */
+	if (enable_debug_log)
+		pr_debug("%s : requesting IRQ %d\n", __func__, client->irq);
+	st21nfc_dev->irq_enabled = true;
+
+	ret = devm_request_irq(dev, client->irq, st21nfc_dev_irq_handler,
+						   st21nfc_dev->polarity_mode | IRQF_NO_SUSPEND,
+						   client->name, st21nfc_dev);
+
+	if (ret) {
+		pr_err("%s : devm_request_irq failed\n", __func__);
+		return -ENODEV;
+	}
+	st21nfc_dev->irq_is_attached = true;
+	st21nfc_disable_irq(st21nfc_dev);
+
+	if (enable_debug_log)
+		pr_info("%s:%d ret %d", __FILE__, __LINE__, ret);
+
+	return ret;
+}
+
+static void st21nfc_power_stats_switch(struct st21nfc_device *st21nfc_dev,
+	uint64_t current_time_ms,
+	enum st21nfc_power_state old_state,
+	enum st21nfc_power_state new_state,
+	bool is_ntf)
+{
+	mutex_lock(&st21nfc_dev->pidle_mutex);
+
+	if (new_state == old_state) {
+		if ((st21nfc_dev->pw_states[ST21NFC_IDLE].last_entry != 0) ||
+			(old_state != ST21NFC_IDLE)) {
+			pr_err("%s Error: Switched from %s to %s!: %llx, ntf=%d\n",
+				__func__,
+				st21nfc_power_state_name[old_state],
+				st21nfc_power_state_name[new_state],
+				current_time_ms, is_ntf);
+
+			if (new_state == ST21NFC_IDLE)
+				st21nfc_dev->pw_states_err.idle_to_idle++;
+			else if (new_state == ST21NFC_ACTIVE)
+				st21nfc_dev->pw_states_err.active_to_active++;
+			else if (new_state == ST21NFC_ACTIVE_RW)
+				st21nfc_dev->pw_states_err.act_rw_to_act_rw++;
+
+			mutex_unlock(&st21nfc_dev->pidle_mutex);
+			return;
+		}
+	} else if (!is_ntf && new_state == ST21NFC_ACTIVE &&
+				old_state != ST21NFC_IDLE) {
+		st21nfc_dev->pw_states_err.active_not_idle++;
+	} else if (!is_ntf && new_state == ST21NFC_IDLE &&
+				old_state == ST21NFC_ACTIVE_RW) {
+		st21nfc_dev->pw_states_err.active_rw_to_idle++;
+	} else if (is_ntf && new_state == ST21NFC_ACTIVE &&
+				old_state == ST21NFC_IDLE) {
+		st21nfc_dev->pw_states_err.idle_to_active_ntf++;
+	} else if (is_ntf && new_state == ST21NFC_ACTIVE_RW &&
+				old_state == ST21NFC_IDLE) {
+		st21nfc_dev->pw_states_err.idle_to_active_rw_ntf++;
+	}
+
+	pr_debug("%s Switching from %s to %s: %llx, ntf=%d\n", __func__,
+		st21nfc_power_state_name[old_state],
+		st21nfc_power_state_name[new_state], current_time_ms, is_ntf);
+	st21nfc_dev->pw_states[old_state].last_exit = current_time_ms;
+	st21nfc_dev->pw_states[old_state].duration +=
+				st21nfc_dev->pw_states[old_state].last_exit -
+				st21nfc_dev->pw_states[old_state].last_entry;
+	st21nfc_dev->pw_states[new_state].count++;
+	st21nfc_dev->pw_current = new_state;
+	st21nfc_dev->pw_states[new_state].last_entry = current_time_ms;
+
+	mutex_unlock(&st21nfc_dev->pidle_mutex);
+}
+
+static void st21nfc_power_stats_idle_signal(struct st21nfc_device *st21nfc_dev)
+{
+	uint64_t current_time_ms = ktime_to_ms(ktime_get_boottime());
+	int value = gpiod_get_value(st21nfc_dev->gpiod_pidle);
+
+	if (value != 0) {
+		st21nfc_power_stats_switch(
+			st21nfc_dev, current_time_ms,
+			st21nfc_dev->pw_current, ST21NFC_ACTIVE, false);
+	} else {
+		st21nfc_power_stats_switch(st21nfc_dev, current_time_ms,
+			st21nfc_dev->pw_current, ST21NFC_IDLE, false);
+	}
+}
+
+void st21nfc_pstate_wq(struct work_struct *work)
+{
+	struct st21nfc_device *st21nfc_dev =
+		container_of(work, struct st21nfc_device, st_p_work);
+
+	st21nfc_power_stats_idle_signal(st21nfc_dev);
+}
+
+static irqreturn_t st21nfc_dev_power_stats_handler(int irq, void *dev_id)
+{
+	struct st21nfc_device *st21nfc_dev = dev_id;
+
+	queue_work(st21nfc_dev->st_p_wq, &(st21nfc_dev->st_p_work));
+
+	return IRQ_HANDLED;
+}
+
+#ifdef ST54J_PWRSTATS
+static void st21nfc_power_stats_filter(
+	struct st21nfc_device *st21nfc_dev, char *buf, size_t count)
+{
+	uint64_t current_time_ms = ktime_to_ms(ktime_get_boottime());
+	__u16 ntf_opcode = nci_opcode(buf);
+
+	if (IS_ERR(st21nfc_dev->gpiod_pidle))
+		return;
+
+	/* In order to avoid counting active state on PAYLOAD where it would
+	 * match a possible header, power states are filtered only on NCI
+	 * headers.
+	 */
+	if (st21nfc_dev->r_state_current != ST21NFC_HEADER)
+		return;
+
+	if (count != HEADER_LENGTH) {
+		pr_err("%s Warning: expect previous one was idle data\n");
+		st21nfc_dev->pw_states_err.header_payload++;
+		return;
+	}
+
+	if (nci_mt(buf) != NCI_MT_NTF_PKT &&
+		nci_opcode_gid(ntf_opcode) != NCI_GID_PROPRIETARY)
+		return;
+
+	switch (ntf_opcode) {
+	case PROP_PWR_MON_RW_OFF_NTF:
+		st21nfc_power_stats_switch(st21nfc_dev, current_time_ms,
+			st21nfc_dev->pw_current, ST21NFC_ACTIVE, true);
+		break;
+	case PROP_PWR_MON_RW_ON_NTF:
+		st21nfc_power_stats_switch(st21nfc_dev, current_time_ms,
+			st21nfc_dev->pw_current, ST21NFC_ACTIVE_RW, true);
+		break;
+	default:
+		return;
+	}
+}
+#endif
+
+static ssize_t st21nfc_dev_read(
+	struct file *filp, char __user *buf, size_t count, loff_t *offset)
+{
+	struct st21nfc_device *st21nfc_dev =
+		container_of(filp->private_data,
+			struct st21nfc_device, st21nfc_device);
+	int ret;
+#ifdef ST54J_PWRSTATS
+	int idle = 0;
+#endif  // ST21NFCD_MTK
+
+	if (count == 0)
+		return 0;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	if (count > MAX_BUFFER_SIZE)
 		count = MAX_BUFFER_SIZE;
@@ -273,8 +596,24 @@ static ssize_t st21nfc_dev_read(struct file *filp, char __user *buf,
 #else
 	ret = i2c_master_recv(st21nfc_dev->platform_data.client, tmp, count);
 #endif
+<<<<<<< HEAD
 	mutex_unlock(&st21nfc_dev->platform_data.read_mutex);
 	do_gettimeofday(&e);
+=======
+#ifdef ST54J_PWRSTATS
+	if (ret < 0) {
+		pr_err("%s: i2c_master_recv returned %d\n", __func__, ret);
+		mutex_unlock(&st21nfc_dev->read_mutex);
+		return ret;
+	}
+	if (st21nfc_dev->r_state_current == ST21NFC_HEADER) {
+		/* Counting idle index */
+		for (idle = 0;
+			idle < ret &&
+			st21nfc_dev->buffer[idle] == IDLE_CHARACTER;
+			idle++)
+			;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	t = (e.tv_sec - s1.tv_sec) * USEC_PER_SEC;
 	t += (e.tv_usec - s1.tv_usec);
@@ -294,11 +633,38 @@ static ssize_t st21nfc_dev_read(struct file *filp, char __user *buf,
 			ret);
 		return -EIO;
 	}
+<<<<<<< HEAD
 #ifdef KRNMTKLEGACY_I2C
 	if (copy_to_user(buf, I2CDMAReadBuf, ret)) {
 #else
 	if (copy_to_user(buf, tmp, ret)) {
 #endif
+=======
+
+#ifdef ST54J_PWRSTATS
+	if (idle < HEADER_LENGTH) {
+		st21nfc_power_stats_filter(
+			st21nfc_dev, st21nfc_dev->buffer, ret);
+		/* change state only if a payload is detected, i.e. size > 0*/
+		if ((st21nfc_dev->r_state_current == ST21NFC_HEADER) &&
+			(st21nfc_dev->buffer[2] > 0)) {
+			st21nfc_dev->r_state_current = ST21NFC_PAYLOAD;
+			if (enable_debug_log)
+				pr_debug("%s : new state = ST21NFC_PAYLOAD\n",
+					__func__);
+		} else {
+			st21nfc_dev->r_state_current = ST21NFC_HEADER;
+			if (enable_debug_log)
+				pr_debug("%s : new state = ST21NFC_HEADER\n",
+					__func__);
+		}
+	}
+#endif  // ST21NFCD_MTK
+
+        st21nfc_print_buffer(st21nfc_dev->buffer, ret);
+         
+	if (copy_to_user(buf, st21nfc_dev->buffer, ret)) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		pr_warn("%s : failed to copy to user space\n", __func__);
 		return -EFAULT;
 	}
@@ -313,25 +679,34 @@ static ssize_t st21nfc_dev_write(struct file *filp, const char __user *buf,
 	char tmp[MAX_BUFFER_SIZE];
 #endif
 	int ret = count;
+        bandwidth_test = false;
 
 	st21nfc_dev = container_of(filp->private_data, struct st21nfc_dev,
 				st21nfc_device);
 	if (enable_debug_log) {
-		pr_debug("%s: st21nfc_dev ptr %p\n", __func__, st21nfc_dev);
+		//pr_debug("%s: st21nfc_dev ptr %p\n", __func__, st21nfc_dev);
 		pr_debug("%s : writing %zu bytes.\n", __func__, count);
 	}
 
 	if (count > MAX_BUFFER_SIZE)
 		count = MAX_BUFFER_SIZE;
 
+<<<<<<< HEAD
 #ifdef KRNMTKLEGACY_I2C
 	if (copy_from_user(I2CDMAWriteBuf, buf, count)) {
 #else
 	if (copy_from_user(tmp, buf, count)) {
 #endif
 		pr_err("%s : failed to copy from user space\n", __func__);
+=======
+	tmp = memdup_user(buf, count);
+	if (IS_ERR_OR_NULL(tmp)) {
+		pr_err("%s : memdup_user failed\n", __func__);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		return -EFAULT;
 	}
+	
+	st21nfc_print_buffer(tmp, ret);
 
 /* Write data */
 #ifdef KRNMTKLEGACY_I2C
@@ -343,11 +718,37 @@ static ssize_t st21nfc_dev_write(struct file *filp, const char __user *buf,
 	/* st21nfc_dev->platform_data.client->ext_flag |= I2C_A_FILTER_MSG; */
 	st21nfc_dev->platform_data.client->timing = NFC_CLIENT_TIMING;
 
+<<<<<<< HEAD
 	ret = i2c_master_send(st21nfc_dev->platform_data.client,
 				(unsigned char *)(uintptr_t)I2CDMAWriteBuf_pa,
 				count);
 #else
 	ret = i2c_master_send(st21nfc_dev->platform_data.client, tmp, count);
+=======
+    //identify this is cts bandwidth test
+    if(count == 258 && I2CDMAWriteBuf_pa[0] == 0x04 &&  I2CDMAWriteBuf_pa[1] == 0x00 && I2CDMAWriteBuf_pa[2] == 0xFF && st21nfc_vts_compare( (unsigned char *)(I2CDMAWriteBuf_pa+3),count-3) ==1){
+          bandwidth_test = true;
+          //bandwith payload length = 0xff -3 = 0xfc
+          I2CDMAWriteBuf_pa[2] = 0xfc;
+	  ret = i2c_master_send(st21nfc_dev->client,
+	    (unsigned char *)(uintptr_t)I2CDMAWriteBuf_pa, MAX_SIZE);
+          ret += HEADER_LENGTH ;
+	} else {
+		ret = i2c_master_send(st21nfc_dev->client,
+	    (unsigned char *)(uintptr_t)I2CDMAWriteBuf_pa, count);
+	}
+#else
+	       //identify this is cts bandwidth test
+    if(count == 258 && tmp[0] == 0x04 &&  tmp[1] == 0x00 && tmp[2] == 0xFF && st21nfc_vts_compare( (unsigned char *)(tmp+3),count-3) ==1)  { 
+          bandwidth_test = true;
+          //bandwith payload length = 0xff -3 = 0xfc
+          tmp[2] = 0xfc;
+          ret = i2c_master_send(st21nfc_dev->client, tmp, MAX_SIZE);
+          ret += HEADER_LENGTH ;
+	} else {
+	    ret = i2c_master_send(st21nfc_dev->client, tmp, count);
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 	if (ret != count) {
 		pr_err("%s : i2c_master_send returned %d\n", __func__, ret);
@@ -440,11 +841,19 @@ static long st21nfc_dev_ioctl(struct file *filp, unsigned int cmd,
 	 * from the kernel perspective; so they look reversed.
 	 */
 	if (_IOC_DIR(cmd) & _IOC_READ)
+<<<<<<< HEAD
 		ret = !access_ok(VERIFY_WRITE,
 				(void __user *)arg, _IOC_SIZE(cmd));
 	if (ret == 0 && _IOC_DIR(cmd) & _IOC_WRITE)
 		ret = !access_ok(VERIFY_READ,
 				(void __user *)arg, _IOC_SIZE(cmd));
+=======
+		ret = !ACCESS_OK(VERIFY_WRITE,
+			(void __user *)arg, _IOC_SIZE(cmd));
+	if (ret == 0 && _IOC_DIR(cmd) & _IOC_WRITE)
+		ret = !ACCESS_OK(VERIFY_READ,
+			(void __user *)arg, _IOC_SIZE(cmd));
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (ret)
 		return -EFAULT;
 
@@ -477,7 +886,11 @@ static long st21nfc_dev_ioctl(struct file *filp, unsigned int cmd,
 	case ST21NFC_PULSE_RESET:
 	case ST21NFC_LEGACY_PULSE_RESET:
 		pr_info("%s Double Pulse Request\n", __func__);
+<<<<<<< HEAD
 		if (st21nfc_dev->platform_data.reset_gpio != 0) {
+=======
+		if (!IS_ERR_OR_NULL(st21nfc_dev->gpiod_reset)) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 			if (st21nfc_st54spi_cb != 0)
 				(*st21nfc_st54spi_cb)(ST54SPI_CB_RESET_START,
 					st21nfc_st54spi_data);
@@ -531,6 +944,7 @@ static long st21nfc_dev_ioctl(struct file *filp, unsigned int cmd,
 	case ST21NFC_LEGACY_RECOVERY:
 		/* For ST21NFCD usage only */
 		pr_info("%s Recovery Request\n", __func__);
+<<<<<<< HEAD
 		if (st21nfc_dev->platform_data.reset_gpio != 0) {
 			if (irqIsAttached) {
 				struct i2c_client *client =
@@ -538,6 +952,14 @@ static long st21nfc_dev_ioctl(struct file *filp, unsigned int cmd,
 
 				free_irq(client->irq, st21nfc_dev);
 				irqIsAttached = false;
+=======
+		if (!IS_ERR_OR_NULL(st21nfc_dev->gpiod_reset)) {
+			if (st21nfc_dev->irq_is_attached) {
+				devm_free_irq(&st21nfc_dev->client->dev,
+					st21nfc_dev->client->irq,
+					st21nfc_dev);
+				st21nfc_dev->irq_is_attached = false;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 			}
 			gpio_set_value(st21nfc_dev->platform_data.reset_gpio,
 					0);
@@ -620,6 +1042,7 @@ static unsigned int st21nfc_poll(struct file *file, poll_table *wait)
 		mask = POLLIN | POLLRDNORM; /* signal data avail */
 		st21nfc_disable_irq(st21nfc_dev);
 	} else {
+<<<<<<< HEAD
 		/* Wake_up_pin  is low. Activate ISR  */
 		if (!st21nfc_dev->irq_enabled) {
 			if (enable_debug_log)
@@ -630,6 +1053,12 @@ static unsigned int st21nfc_poll(struct file *file, poll_table *wait)
 			if (enable_debug_log)
 				pr_debug("%s irq already enabled\n", __func__);
 		}
+=======
+		/* Wake_up_pin is low. Activate ISR  */
+		if (enable_debug_log)
+			pr_debug("%s enable irq\n", __func__);
+		st21nfc_enable_irq(st21nfc_dev);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 
 	return mask;
@@ -701,6 +1130,98 @@ static ssize_t version_show(struct device *dev,
 	return sprintf(buf, "%s\n", DRIVER_VERSION);
 } /* version_show */
 
+<<<<<<< HEAD
+=======
+static uint64_t st21nfc_power_duration(struct st21nfc_device *data,
+	enum st21nfc_power_state pstate,
+	uint64_t current_time_ms)
+{
+	return data->c_pw_current != pstate
+			 ? data->c_pw_states[pstate].duration
+			 : data->c_pw_states[pstate].duration +
+	(current_time_ms - data->c_pw_states[pstate].last_entry);
+}
+
+static ssize_t power_stats_show(struct device *dev,
+	struct device_attribute *attr, char *buf)
+{
+	struct st21nfc_device *data = dev_get_drvdata(dev);
+	uint64_t current_time_ms;
+	uint64_t idle_duration;
+	uint64_t active_ce_duration;
+	uint64_t active_rw_duration;
+
+	mutex_lock(&data->pidle_mutex);
+
+	data->c_pw_current = data->pw_current;
+	data->c_pw_states_err = data->pw_states_err;
+	memcpy(data->c_pw_states, data->pw_states,
+		ST21NFC_POWER_STATE_MAX * sizeof(struct nfc_sub_power_stats));
+
+	mutex_unlock(&data->pidle_mutex);
+
+	current_time_ms = ktime_to_ms(ktime_get_boottime());
+	idle_duration = st21nfc_power_duration(
+		data, ST21NFC_IDLE, current_time_ms);
+	active_ce_duration =
+		st21nfc_power_duration(
+		data, ST21NFC_ACTIVE, current_time_ms);
+	active_rw_duration =
+		st21nfc_power_duration(
+		data, ST21NFC_ACTIVE_RW, current_time_ms);
+
+	return scnprintf(
+		buf, PAGE_SIZE,
+		"NFC subsystem\n"
+		"Idle mode:\n"
+		"\tCumulative count: 0x%llx\n"
+		"\tCumulative duration msec: 0x%llx\n"
+		"\tLast entry timestamp msec: 0x%llx\n"
+		"\tLast exit timestamp msec: 0x%llx\n"
+		"Active mode:\n"
+		"\tCumulative count: 0x%llx\n"
+		"\tCumulative duration msec: 0x%llx\n"
+		"\tLast entry timestamp msec: 0x%llx\n"
+		"\tLast exit timestamp msec: 0x%llx\n"
+		"Active Reader/Writer mode:\n"
+		"\tCumulative count: 0x%llx\n"
+		"\tCumulative duration msec: 0x%llx\n"
+		"\tLast entry timestamp msec: 0x%llx\n"
+		"\tLast exit timestamp msec: 0x%llx\n"
+		"\nError transition header --> payload state machine: 0x%llx\n"
+		"Error transition from an Active state when not in Idle state: 0x%llx\n"
+		"Error transition from Idle state to Idle state: 0x%llx\n"
+      "Warning transition from Active Reader/Writer state to Idle state: "
+      "0x%llx\n"
+      "Error transition from Active state to Active state: 0x%llx\n"
+      "Error transition from Idle state to Active state with notification: "
+      "0x%llx\n"
+      "Error transition from Active Reader/Writer state to Active "
+      "Reader/Writer state: 0x%llx\n"
+      "Error transition from Idle state to Active Reader/Writer state with "
+      "notification: 0x%llx\n"
+		"\nTotal uptime: 0x%llx Cumulative modes time: 0x%llx\n",
+		data->c_pw_states[ST21NFC_IDLE].count, idle_duration,
+		data->c_pw_states[ST21NFC_IDLE].last_entry,
+		data->c_pw_states[ST21NFC_IDLE].last_exit,
+		data->c_pw_states[ST21NFC_ACTIVE].count, active_ce_duration,
+		data->c_pw_states[ST21NFC_ACTIVE].last_entry,
+		data->c_pw_states[ST21NFC_ACTIVE].last_exit,
+		data->c_pw_states[ST21NFC_ACTIVE_RW].count, active_rw_duration,
+		data->c_pw_states[ST21NFC_ACTIVE_RW].last_entry,
+		data->c_pw_states[ST21NFC_ACTIVE_RW].last_exit,
+		data->c_pw_states_err.header_payload,
+		data->c_pw_states_err.active_not_idle,
+		data->c_pw_states_err.idle_to_idle,
+		data->c_pw_states_err.active_rw_to_idle,
+		data->c_pw_states_err.active_to_active,
+		data->c_pw_states_err.idle_to_active_ntf,
+		data->c_pw_states_err.act_rw_to_act_rw,
+		data->c_pw_states_err.idle_to_active_rw_ntf, current_time_ms,
+		idle_duration + active_ce_duration + active_rw_duration);
+}
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 static DEVICE_ATTR_RW(i2c_addr);
 
 static DEVICE_ATTR_RO(version);
@@ -713,6 +1234,7 @@ static struct attribute_group st21nfc_attr_grp = {
 	.attrs = st21nfc_attrs,
 };
 
+<<<<<<< HEAD
 #ifdef CONFIG_OF
 static int nfc_parse_dt(struct device *dev, struct st21nfc_platform_data *pdata)
 {
@@ -760,15 +1282,34 @@ static int nfc_parse_dt(struct device *dev, struct st21nfc_platform_data *pdata)
 	return 0;
 }
 #endif
+=======
+// QCOM and MTK54 use standard GPIO definition
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 static int st21nfc_probe(struct i2c_client *client,
 			const struct i2c_device_id *id)
 {
 	int ret;
+<<<<<<< HEAD
 	struct st21nfc_platform_data *platform_data;
 	struct st21nfc_dev *st21nfc_dev;
 	struct device_node *node;
 	struct gpio_desc *desc;
+=======
+	struct st21nfc_device *st21nfc_dev;
+	struct device *dev = &client->dev;
+	int r;
+	struct device_node *np = dev->of_node;
+
+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C)) {
+		pr_err("%s : need I2C_FUNC_I2C\n", __func__);
+		return -ENODEV;
+	}
+
+	st21nfc_dev = devm_kzalloc(dev, sizeof(*st21nfc_dev), GFP_KERNEL);
+	if (st21nfc_dev == NULL)
+		return -ENOMEM;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 #ifdef KRNMTKLEGACY_I2C
 #ifdef CONFIG_64BIT
@@ -852,6 +1393,7 @@ static int st21nfc_probe(struct i2c_client *client,
 	st21nfc_dev->platform_data.polarity_mode = platform_data->polarity_mode;
 	st21nfc_dev->platform_data.client = client;
 
+<<<<<<< HEAD
 	if (enable_debug_log) {
 		pr_debug("%s gpio_request, ret is %d %d %d %d // %d %d %d %d\n",
 			__func__, st21nfc_dev->platform_data.irq_gpio,
@@ -875,6 +1417,21 @@ static int st21nfc_probe(struct i2c_client *client,
 		if (gpio_is_valid(platform_data->reset_gpio))
 			pr_debug("gpio number %d is valid\n",
 				platform_data->reset_gpio);
+=======
+// QCOM and MTK54 use standard GPIO definition
+	np = of_find_compatible_node(NULL, NULL, "mediatek,nfc-gpio-v2");
+	if (!np) {
+		pr_err("%s : cannot find mediatek,nfc-gpio-v2 in DTS.\n",
+			__func__);
+		return -ENODEV;
+	}
+
+// QCOM and MTK54 use standard GPIO definition
+	r = of_get_named_gpio(np, "gpio-irq-std", 0);
+	if (!gpio_is_valid(r)) {
+		pr_err("%s: get NFC IRQ GPIO failed (%d)", __FILE__, r);
+		return -ENODEV;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 
 	ret = gpio_request(platform_data->irq_gpio,
@@ -892,6 +1449,7 @@ static int st21nfc_probe(struct i2c_client *client,
 	ret = gpio_direction_input(platform_data->irq_gpio);
 	if (ret) {
 		pr_err("%s : gpio_direction_input failed\n", __FILE__);
+<<<<<<< HEAD
 		ret = -ENODEV;
 		goto err_free_buffer;
 	}
@@ -907,12 +1465,64 @@ static int st21nfc_probe(struct i2c_client *client,
 	/* handle optional RESET */
 	if (platform_data->reset_gpio != 0) {
 		ret = gpio_request(platform_data->reset_gpio,
+=======
+		return -ENODEV;
+	}
+	if (IS_ERR_OR_NULL(st21nfc_dev->gpiod_irq)) {
+		pr_err("%s : Unable to request irq-gpios\n", __func__);
+		return -ENODEV;
+	}
+
+// QCOM and MTK54 use standard GPIO definition
+	r = of_get_named_gpio(np, "gpio-rst-std", 0);
+	if (!gpio_is_valid(r)) {
+		pr_err("%s: get NFC RST GPIO failed (%d)", __FILE__, r);
+		return -ENODEV;
+	}
+	st21nfc_dev->gpiod_reset = gpio_to_desc(r);
+	ret = gpio_request(r,
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #if (!defined(CONFIG_MTK_GPIO) || defined(CONFIG_MTK_GPIOLIB_STAND))
 				"gpio-rst-std"
 #else
 				"gpio-rst"
 #endif
+<<<<<<< HEAD
 				);
+=======
+	);
+	if (ret) {
+		pr_err("%s : gpio_request failed\n", __FILE__);
+		return -ENODEV;
+	}
+	pr_info("%s : RST GPIO = %d\n", __func__, r);
+	ret = gpio_direction_output(r, 1);
+	if (ret) {
+		pr_err("%s : gpio_direction_output failed\n", __FILE__);
+		return -ENODEV;
+	}
+	gpio_set_value(r, 1);
+	if (IS_ERR_OR_NULL(st21nfc_dev->gpiod_reset)) {
+		pr_warn("%s : Unable to request reset-gpios\n", __func__);
+		return -ENODEV;
+	}
+
+// QCOM and MTK54 use standard GPIO definition
+	ret = of_get_named_gpio(np, "gpio-pidle-std", 0);
+	if (gpio_is_valid(ret))
+		st21nfc_dev->gpiod_pidle = gpio_to_desc(ret);
+	if (IS_ERR_OR_NULL(st21nfc_dev->gpiod_pidle)) {
+		pr_warn("[OPTIONAL] %s: Unable to request pidle-gpio\n",
+			__func__);
+		ret = 0;
+	} else {
+		/* Start the power stat in power mode idle */
+		st21nfc_dev->irq_pw_stats_idle =
+			gpiod_to_irq(st21nfc_dev->gpiod_pidle);
+
+		ret = irq_set_irq_type(
+			st21nfc_dev->irq_pw_stats_idle, IRQ_TYPE_EDGE_BOTH);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		if (ret) {
 			pr_err("%s : reset gpio_request failed\n", __FILE__);
 			ret = -ENODEV;
@@ -939,6 +1549,7 @@ static int st21nfc_probe(struct i2c_client *client,
 			ret = -ENODEV;
 			goto err_free_buffer;
 		}
+<<<<<<< HEAD
 		ret = gpio_direction_output(platform_data->ena_gpio, 1);
 		if (ret) {
 			pr_err("%s : ena gpio_direction_output failed\n",
@@ -957,6 +1568,25 @@ static int st21nfc_probe(struct i2c_client *client,
 		client->irq = nfc_irq;
 
 		pr_info("%s : MT IRQ GPIO = %d\n", __func__, client->irq);
+=======
+		mutex_init(&st21nfc_dev->pidle_mutex);
+
+		st21nfc_dev->st_p_wq = create_workqueue("st_pstate_work");
+		INIT_WORK(&(st21nfc_dev->st_p_work), st21nfc_pstate_wq);
+	}
+
+	ret = st21nfc_clock_select(st21nfc_dev);
+	if (ret < 0) {
+		pr_err("%s : st21nfc_clock_select failed\n", __func__);
+		goto err_sysfs_power_stats;
+	}
+
+	np = of_find_compatible_node(NULL, NULL, "mediatek,irq_nfc-eint");
+	if (np) {
+		client->irq = irq_of_parse_and_map(np, 0);
+		pr_info("%s : MT IRQ GPIO = %d\n", __func__, client->irq);
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 		enable_irq_wake(client->irq);
 
@@ -968,6 +1598,17 @@ static int st21nfc_probe(struct i2c_client *client,
 	init_waitqueue_head(&st21nfc_dev->read_wq);
 	mutex_init(&st21nfc_dev->platform_data.read_mutex);
 	spin_lock_init(&st21nfc_dev->irq_enabled_lock);
+<<<<<<< HEAD
+=======
+	pr_debug(
+		"%s : debug irq_gpio = %d, client-irq =  %d, pidle_gpio = %d\n",
+		__func__,
+		IS_ERR_OR_NULL(st21nfc_dev->gpiod_irq) ?
+			-1 : desc_to_gpio(st21nfc_dev->gpiod_irq),
+		client->irq,
+		IS_ERR_OR_NULL(st21nfc_dev->gpiod_pidle) ?
+			-1 : desc_to_gpio(st21nfc_dev->gpiod_pidle));
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	st21nfc_dev->st21nfc_device.minor = MISC_DYNAMIC_MINOR;
 	st21nfc_dev->st21nfc_device.name = I2C_ID_NAME;
@@ -992,6 +1633,7 @@ static int st21nfc_probe(struct i2c_client *client,
 err_request_irq_failed:
 	misc_deregister(&st21nfc_dev->st21nfc_device);
 err_misc_register:
+<<<<<<< HEAD
 	mutex_destroy(&st21nfc_dev->platform_data.read_mutex);
 err_free_buffer:
 	kfree(st21nfc_dev);
@@ -999,6 +1641,15 @@ err_exit:
 	gpio_free(platform_data->irq_gpio);
 	if (platform_data->ena_gpio != 0)
 		gpio_free(platform_data->ena_gpio);
+=======
+	mutex_destroy(&st21nfc_dev->read_mutex);
+err_sysfs_power_stats:
+	if (!IS_ERR_OR_NULL(st21nfc_dev->gpiod_pidle)) {
+		sysfs_remove_file(&client->dev.kobj,
+			&dev_attr_power_stats.attr);
+		mutex_destroy(&st21nfc_dev->pidle_mutex);
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return ret;
 }
 
@@ -1034,22 +1685,84 @@ static int st21nfc_remove(struct i2c_client *client)
 	st21nfc_dev = i2c_get_clientdata(client);
 	free_irq(client->irq, st21nfc_dev);
 	misc_deregister(&st21nfc_dev->st21nfc_device);
+<<<<<<< HEAD
 	mutex_destroy(&st21nfc_dev->platform_data.read_mutex);
 	gpio_free(st21nfc_dev->platform_data.irq_gpio);
 	if (st21nfc_dev->platform_data.ena_gpio != 0)
 		gpio_free(st21nfc_dev->platform_data.ena_gpio);
 	kfree(st21nfc_dev);
+=======
+	if (!IS_ERR_OR_NULL(st21nfc_dev->gpiod_pidle)) {
+		sysfs_remove_file(&client->dev.kobj,
+			&dev_attr_power_stats.attr);
+		mutex_destroy(&st21nfc_dev->pidle_mutex);
+	}
+	sysfs_remove_group(&client->dev.kobj, &st21nfc_attr_grp);
+	mutex_destroy(&st21nfc_dev->read_mutex);
+	acpi_dev_remove_driver_gpios(ACPI_COMPANION(&client->dev));
+
+	return 0;
+}
+
+static int st21nfc_suspend(struct device *device)
+{
+	struct i2c_client *client = to_i2c_client(device);
+	struct st21nfc_device *st21nfc_dev = i2c_get_clientdata(client);
+
+	if (device_may_wakeup(&client->dev) && st21nfc_dev->irq_enabled) {
+		if (!enable_irq_wake(client->irq))
+			st21nfc_dev->irq_wake_up = true;
+	}
+
+	if (!IS_ERR_OR_NULL(st21nfc_dev->gpiod_pidle))
+		st21nfc_dev->p_idle_last =
+			gpiod_get_value(st21nfc_dev->gpiod_pidle);
+
+	return 0;
+}
+
+static int st21nfc_resume(struct device *device)
+{
+	struct i2c_client *client = to_i2c_client(device);
+	struct st21nfc_device *st21nfc_dev = i2c_get_clientdata(client);
+	int pidle;
+
+	if (device_may_wakeup(&client->dev) && st21nfc_dev->irq_wake_up) {
+		if (!disable_irq_wake(client->irq))
+			st21nfc_dev->irq_wake_up = false;
+	}
+
+	if (!IS_ERR(st21nfc_dev->gpiod_pidle)) {
+		pidle = gpiod_get_value(st21nfc_dev->gpiod_pidle);
+		if ((st21nfc_dev->p_idle_last != pidle) ||
+		     (st21nfc_dev->pw_current == ST21NFC_IDLE && pidle != 0) ||
+		     (st21nfc_dev->pw_current == ST21NFC_ACTIVE && pidle == 0))
+			queue_work(st21nfc_dev->st_p_wq,
+				&(st21nfc_dev->st_p_work));
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	return 0;
 }
 
 static const struct i2c_device_id st21nfc_id[] = {{"st21nfc", 0}, {} };
 
+<<<<<<< HEAD
 #ifdef CONFIG_OF
 static const struct of_device_id nfc_switch_of_match[] = {
 	{.compatible = "mediatek,nfc"}, {},
 };
 #endif
+=======
+static const struct of_device_id st21nfc_of_match[] = {
+	{	.compatible = "mediatek,nfc" },
+	{ } };
+MODULE_DEVICE_TABLE(of, st21nfc_of_match);
+
+static const struct dev_pm_ops st21nfc_pm_ops = {
+	SET_SYSTEM_SLEEP_PM_OPS(st21nfc_suspend, st21nfc_resume)};
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 static struct i2c_driver st21nfc_driver = {
 	.id_table = st21nfc_id,
@@ -1058,10 +1771,17 @@ static struct i2c_driver st21nfc_driver = {
 	.driver = {
 		.owner = THIS_MODULE,
 		.name = I2C_ID_NAME,
+<<<<<<< HEAD
 #ifdef CONFIG_OF
 		.of_match_table = nfc_switch_of_match,
 #endif
 	},
+=======
+		.of_match_table = st21nfc_of_match,
+		.probe_type = PROBE_PREFER_ASYNCHRONOUS,
+		.pm = &st21nfc_pm_ops,
+		},
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 };
 
 #ifndef KRNMTKLEGACY_GPIO
@@ -1089,13 +1809,26 @@ static struct platform_driver st21nfc_platform_driver = {
 /* module load/unload record keeping */
 static int __init st21nfc_dev_init(void)
 {
+	int project_number;
 	pr_info("Loading st21nfc driver\n");
+	//get hwversion number
+	project_number = board_id_get_hwversion_product_num();
+	
+
 #ifndef KRNMTKLEGACY_GPIO
 	platform_driver_register(&st21nfc_platform_driver);
 	if (enable_debug_log)
 		pr_debug("Loading st21nfc i2c driver\n");
 #endif
-	return i2c_add_driver(&st21nfc_driver);
+
+	if(project_number == 2) 
+	{
+		pr_info("%s: support NFC\n", __func__);
+		return i2c_add_driver(&st21nfc_driver);
+	} else {
+		pr_err("%s: not supports NFC\n", __func__);
+		return -ENODEV;
+	}
 }
 
 module_init(st21nfc_dev_init);
@@ -1108,7 +1841,7 @@ static void __exit st21nfc_dev_exit(void)
 
 module_exit(st21nfc_dev_exit);
 
-MODULE_AUTHOR("Norbert Kawulski");
+MODULE_AUTHOR("STMicroelectronics");
 MODULE_DESCRIPTION("NFC ST21NFC driver");
 MODULE_VERSION(DRIVER_VERSION);
 MODULE_LICENSE("GPL");
