@@ -140,6 +140,7 @@ enum VAL_CHIP_VERSION_T {
  *	This is the item for driver type
  */
 enum VAL_DRIVER_TYPE_T {
+<<<<<<< HEAD
 	VAL_DRIVER_TYPE_NONE = 0,	   /* /< None */
 	VAL_DRIVER_TYPE_MP4_ENC,	    /* /< MP4 encoder */
 	VAL_DRIVER_TYPE_MP4_DEC,	    /* /< MP4 decoder */
@@ -150,6 +151,20 @@ enum VAL_DRIVER_TYPE_T {
 	VAL_DRIVER_TYPE_VC1_SP_DEC,      /* /< VC-1 simple profile decoder */
 	VAL_DRIVER_TYPE_RV9_DEC,	 /* /< RV9 decoder */
 	VAL_DRIVER_TYPE_MP1_MP2_DEC,     /* /< MPEG1/2 decoder */
+=======
+	VAL_DRIVER_TYPE_NONE = 0,               /* /< None */
+	VAL_DRIVER_TYPE_MP4_ENC,                /* /< MP4 encoder */
+	VAL_DRIVER_TYPE_MP4_DEC,                /* /< MP4 decoder */
+	VAL_DRIVER_TYPE_H263_ENC,               /* /< H.263 encoder */
+	VAL_DRIVER_TYPE_H263_DEC,               /* /< H.263 decoder */
+	VAL_DRIVER_TYPE_H264_ENC,               /* /< H.264 encoder */
+	VAL_DRIVER_TYPE_H264_DEC,               /* /< H.264 decoder */
+	VAL_DRIVER_TYPE_UNUSED_1,               /* /< Unused S decoder */
+	VAL_DRIVER_TYPE_VC1_SP_DEC,      /* /< VC-1 simple profile decoder */
+	VAL_DRIVER_TYPE_RV9_DEC,                /* /< RV9 decoder */
+	VAL_DRIVER_TYPE_MP1_MP2_DEC,            /* /< MPEG1/2 decoder */
+	VAL_DRIVER_TYPE_UNUSED_2,               /* /< Unused xv decoder */
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	/* /< VC-1 main profile (WMV9) decoder */
 	VAL_DRIVER_TYPE_VC1_MP_WMV9_DEC,
 	VAL_DRIVER_TYPE_RV8_DEC,       /* /< RV8 decoder */

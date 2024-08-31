@@ -42,9 +42,17 @@ enum VAL_CODEC_TYPE_T {
 	VAL_CODEC_TYPE_H263_DEC,		/* /< H.263 decoder */
 	VAL_CODEC_TYPE_H264_ENC,		/* /< H.264 encoder */
 	VAL_CODEC_TYPE_H264_DEC,		/* /< H.264 decoder */
+<<<<<<< HEAD
 	VAL_CODEC_TYPE_VC1_SP_DEC,	/* /< VC-1 simple profile decoder */
 	VAL_CODEC_TYPE_RV9_DEC,			/* /< RV9 decoder */
 	VAL_CODEC_TYPE_MP1_MP2_DEC,		/* /< MPEG1/2 decoder */
+=======
+	VAL_CODEC_TYPE_UNUSED_1,	/* /< Unused S decoder */
+	VAL_CODEC_TYPE_VC1_SP_DEC,	/* /< VC-1 simple profile decoder */
+	VAL_CODEC_TYPE_RV9_DEC,			/* /< RV9 decoder */
+	VAL_CODEC_TYPE_MP1_MP2_DEC,		/* /< MPEG1/2 decoder */
+	VAL_CODEC_TYPE_UNUSED_2,		/* /< Unused xv decoder */
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	VAL_CODEC_TYPE_VC1_MP_WMV9_DEC,	/* /< VC-1 main profile(WMV9) decoder */
 	VAL_CODEC_TYPE_RV8_DEC,			/* /< RV8 decoder */
 	VAL_CODEC_TYPE_WMV7_DEC,		/* /< WMV7 decoder */
