@@ -290,7 +290,16 @@ void disassociate_ctty(int on_exit)
 		return;
 	}
 
+<<<<<<< HEAD
 	tty = get_current_tty();
+=======
+	spin_lock_irq(&current->sighand->siglock);
+	put_pid(current->signal->tty_old_pgrp);
+	current->signal->tty_old_pgrp = NULL;
+	tty = tty_kref_get(current->signal->tty);
+	spin_unlock_irq(&current->sighand->siglock);
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (tty) {
 		unsigned long flags;
 
@@ -305,6 +314,7 @@ void disassociate_ctty(int on_exit)
 		tty_kref_put(tty);
 	}
 
+<<<<<<< HEAD
 	/* If tty->ctrl.pgrp is not NULL, it may be assigned to
 	 * current->signal->tty_old_pgrp in a race condition, and
 	 * cause pid memleak. Release current->signal->tty_old_pgrp
@@ -315,6 +325,8 @@ void disassociate_ctty(int on_exit)
 	current->signal->tty_old_pgrp = NULL;
 	spin_unlock_irq(&current->sighand->siglock);
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	/* Now clear signal->tty under the lock */
 	read_lock(&tasklist_lock);
 	session_clear_tty(task_session(current));
