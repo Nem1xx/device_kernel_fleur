@@ -86,18 +86,31 @@ static int scp_ultra_pcm_dev_probe(struct platform_device *pdev)
 		pr_debug("%s(), pdev->dev.of_node NULL!!!\n", __func__);
 	}
 
+<<<<<<< HEAD
 	ret = snd_soc_register_component(&pdev->dev,
 			&mtk_scp_ultra_pcm_platform, NULL, 0);
+=======
+	ret = snd_soc_register_platform(&pdev->dev,
+			&mtk_scp_ultra_pcm_platform);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (ret) {
 		dev_warn(&pdev->dev, "err_platform\n");
 		goto err_platform;
 	}
+<<<<<<< HEAD
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	set_scp_ultra_base((void *)scp_ultra);
 
 	return 0;
 
 err_platform:
+<<<<<<< HEAD
 	snd_soc_unregister_component(&pdev->dev);
+=======
+	snd_soc_unregister_platform(&pdev->dev);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	return ret;
 }

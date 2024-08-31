@@ -28,6 +28,7 @@
 #else
 #define AUDIO_AEE(message) WARN_ON(true)
 #endif
+<<<<<<< HEAD
 
 /* wake lock relate*/
 #define aud_wake_lock_init(dev, name) wakeup_source_register(dev, name)
@@ -35,6 +36,12 @@
 #define aud_wake_lock(ws) __pm_stay_awake(ws)
 #define aud_wake_unlock(ws) __pm_relax(ws)
 
+=======
+#define aud_wake_lock_init(ws, name) wakeup_source_init(ws, name)
+#define aud_wake_lock_destroy(ws) wakeup_source_trash(ws)
+#define aud_wake_lock(ws) __pm_stay_awake(ws)
+#define aud_wake_unlock(ws) __pm_relax(ws)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 enum {
 	SCP_ULTRA_STAGE_OFF,
 	SCP_ULTRA_STAGE_NORMAL_PLAYBACK,
@@ -88,11 +95,19 @@ int set_scp_ultra_base(struct mtk_base_scp_ultra *scp_ultra);
 void *get_scp_ultra_base(void);
 void mtk_scp_ultra_dump_msg(struct mtk_base_scp_ultra_dump *ultra_dump);
 void mtk_scp_ultra_ipi_send(uint8_t data_type, /*audio_ipi_msg_data_t*/
+<<<<<<< HEAD
 			    uint8_t ack_type, /*audio_ipi_msg_ack_t*/
 			    uint16_t msg_id,
 			    uint32_t param1,
 			    uint32_t param2,
 			    char *payload);
+=======
+				     uint8_t ack_type, /*audio_ipi_msg_ack_t*/
+				     uint16_t msg_id,
+			    uint32_t param1,
+			    uint32_t param2,
+				     char *payload);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 void set_afe_dl_irq_target(int scp_enable);
 void set_afe_ul_irq_target(int scp_enable);
 #endif

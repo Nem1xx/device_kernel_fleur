@@ -181,4 +181,8 @@ int mtk_scp_ultra_allocate_mem(struct snd_pcm_substream *substream,
 	return 0;
 }
 EXPORT_SYMBOL_GPL(mtk_scp_ultra_allocate_mem);
+<<<<<<< HEAD
 late_initcall(mtk_scp_ultra_reserved_dram_init);
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)

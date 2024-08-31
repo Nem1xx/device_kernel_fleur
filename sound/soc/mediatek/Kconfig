@@ -442,4 +442,8 @@ config MTK_ULTRASND_PROXIMITY
 	  cooperate with SCP ultra sound driver to
 	  emulate physical proximity sensor. Using
 	  IPI interface to communicate with SCP side and
+<<<<<<< HEAD
 	  be controlled by sensor hal.
+=======
+	  be controlled by sensor hal.
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)

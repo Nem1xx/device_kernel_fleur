@@ -5832,6 +5832,10 @@ static int mt6781_afe_pcm_dev_probe(struct platform_device *pdev)
 #if defined(CONFIG_MTK_ULTRASND_PROXIMITY)
 	ultra_set_afe_base(afe);
 #endif
+<<<<<<< HEAD
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return 0;
 
 err_dai_component:

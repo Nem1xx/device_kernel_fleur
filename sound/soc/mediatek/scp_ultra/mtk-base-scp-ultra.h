@@ -67,5 +67,9 @@ struct ultra_gain_config {
 	int receiver_gain;
 };
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 

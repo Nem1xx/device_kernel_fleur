@@ -325,8 +325,13 @@ END:
 	}
 
 #if defined(CONFIG_MTK_VOW_BARGE_IN_SUPPORT) ||\
+<<<<<<< HEAD
 		defined(CONFIG_SND_SOC_MTK_SCP_SMARTPA) ||\
 		defined(CONFIG_MTK_ULTRASND_PROXIMITY)
+=======
+	defined(CONFIG_SND_SOC_MTK_SCP_SMARTPA) ||\
+	defined(CONFIG_MTK_ULTRASND_PROXIMITY)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 BYPASS_AFE_FE_ALLOCATE_MEM:
 #endif
 

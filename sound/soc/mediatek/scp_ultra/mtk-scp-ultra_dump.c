@@ -1,6 +1,20 @@
+<<<<<<< HEAD
 /* SPDX-License-Identifier: GPL-2.0 */
 /*
  * Copyright (C) 2018 MediaTek Inc.
+=======
+/*
+ * Copyright (C) 2016 MediaTek Inc.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See http://www.gnu.org/licenses/gpl-2.0.html for more details.
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
  */
 
 //#include "mtk-scp-ultra.h"
@@ -38,10 +52,16 @@
 #include "mtk-scp-ultra_dump.h"
 #include "mtk-scp-ultra-common.h"
 
+<<<<<<< HEAD
 
 #define DUMP_ULTRA_PCM_DATA_PATH "/data/vendor/audiohal/audio_dump"
 #define FRAME_BUF_SIZE (8192)
 static struct wakeup_source *wakelock_ultra_dump_lock;
+=======
+#define DUMP_ULTRA_PCM_DATA_PATH "/data/vendor/audiohal/audio_dump"
+#define FRAME_BUF_SIZE (8192)
+static struct wakeup_source wakelock_ultra_dump_lock;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 enum { /* dump_data_t */
 	DUMP_PCM_IN = 0,
@@ -101,7 +121,11 @@ int ultra_start_engine_thread(void)
 	int ret = 0;
 
 	/* only enable when debug pcm dump on */
+<<<<<<< HEAD
 	aud_wake_lock(wakelock_ultra_dump_lock);
+=======
+	aud_wake_lock(&wakelock_ultra_dump_lock);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	pr_debug("%s(),b_enable_stread  0546= %d", __func__, b_enable_stread);
 	if (true == b_enable_stread)
@@ -144,7 +168,11 @@ void ultra_stop_engine_thread(void)
 	kfree(dump_queue);
 	dump_queue = NULL;
 	ultra_close_dump_file();
+<<<<<<< HEAD
 	aud_wake_unlock(wakelock_ultra_dump_lock);
+=======
+	aud_wake_unlock(&wakelock_ultra_dump_lock);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 int ultra_open_dump_file(void)
@@ -157,7 +185,11 @@ int ultra_open_dump_file(void)
 	char path_dataout_pcm[64];
 
 	/* only enable when debug pcm dump on */
+<<<<<<< HEAD
 	//aud_wake_lock(wakelock_ultra_dump_lock);
+=======
+	//aud_wake_lock(&wakelock_ultra_dump_lock);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	getnstimeofday(&curr_tm);
 	if (true == b_enable_dump) {
 		pr_info("ultra dump is alread opend\n");
@@ -183,8 +215,12 @@ int ultra_open_dump_file(void)
 			__func__, path_dataout_pcm);
 
 	fp_pcm_in = filp_open(path_datain_pcm,
+<<<<<<< HEAD
 			O_CREAT | O_WRONLY | O_LARGEFILE | O_NOFOLLOW,
 			0);
+=======
+			O_CREAT | O_WRONLY | O_LARGEFILE, 0);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (IS_ERR(fp_pcm_in)) {
 		pr_info("%s(), %s file open error: %ld\n",
 				__func__,
@@ -194,7 +230,11 @@ int ultra_open_dump_file(void)
 	}
 	fp_pcm_out = filp_open(
 			path_dataout_pcm,
+<<<<<<< HEAD
 			O_CREAT | O_WRONLY | O_LARGEFILE | O_NOFOLLOW,
+=======
+			O_CREAT | O_WRONLY | O_LARGEFILE,
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 			0);
 	if (IS_ERR(fp_pcm_out)) {
 		pr_info("%s(), %s file open error: %ld\n",
@@ -437,14 +477,24 @@ void audio_ipi_client_ultra_init(void)
 	pr_info("%s()", __func__);
 	if (ultra_dump_mem.start_virt == NULL) {
 		pr_info("%s() ultra_dump_mem.start_virt:%p", __func__,
+<<<<<<< HEAD
 			ultra_dump_mem.start_virt);
 	}
 	wakelock_ultra_dump_lock = aud_wake_lock_init(NULL, "ultradump lock");
+=======
+				ultra_dump_mem.start_virt);
+	}
+	aud_wake_lock_init(&wakelock_ultra_dump_lock, "ultradump lock");
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	dump_workqueue[DUMP_PCM_IN] = create_workqueue("dump_ultra_pcm_in");
 	if (dump_workqueue[DUMP_PCM_IN] == NULL) {
 		pr_notice("dump_workqueue[DUMP_PCM_IN] = %p\n",
+<<<<<<< HEAD
 			  dump_workqueue[DUMP_PCM_IN]);
+=======
+				dump_workqueue[DUMP_PCM_IN]);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		AUDIO_AEE("dump_workqueue[DUMP_PCM_IN] == NULL");
 	}
 
@@ -452,7 +502,11 @@ void audio_ipi_client_ultra_init(void)
 			create_workqueue("dump_ultra_pcm_out");
 	if (dump_workqueue[DUMP_PCM_OUT] == NULL) {
 		pr_notice("dump_workqueue[DUMP_PCM_OUT] = %p\n",
+<<<<<<< HEAD
 			  dump_workqueue[DUMP_PCM_OUT]);
+=======
+				dump_workqueue[DUMP_PCM_OUT]);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		AUDIO_AEE("dump_workqueue[DUMP_PCM_OUT] == NULL");
 	}
 
@@ -478,5 +532,9 @@ void audio_ipi_client_ultra_deinit(void)
 			dump_workqueue[i] = NULL;
 		}
 	}
+<<<<<<< HEAD
 	aud_wake_lock_destroy(wakelock_ultra_dump_lock);
+=======
+	aud_wake_lock_destroy(&wakelock_ultra_dump_lock);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }

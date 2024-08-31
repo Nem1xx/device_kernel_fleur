@@ -16,6 +16,10 @@
 #include <linux/pm_runtime.h>
 
 #include "scp_helper.h"
+<<<<<<< HEAD
+=======
+#include "scp_ipi.h"
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #include "scp_excep.h"
 #include "audio_ultra_msg_id.h"
 #include "mtk-scp-ultra-mem-control.h"
@@ -38,7 +42,11 @@
 #define ultra_IPIMSG_TIMEOUT (50)
 #define ultra_WAITCHECK_INTERVAL_MS (2)
 static bool ultra_ipi_wait;
+<<<<<<< HEAD
 static struct wakeup_source *ultra_suspend_lock;
+=======
+static struct wakeup_source ultra_suspend_lock;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 static bool pcm_dump_switch;
 static bool pcm_dump_on;
 static const char *const mtk_scp_ultra_dump_str[] = {
@@ -275,11 +283,18 @@ static int mtk_scp_ultra_gain_config_set(struct snd_kcontrol *kcontrol,
 		       false,
 		       2,
 		       &payload[0],
+<<<<<<< HEAD
 		       ULTRA_IPI_BYPASS_ACK);
 	return 0;
 }
 
 
+=======
+			ULTRA_IPI_BYPASS_ACK);
+	return 0;
+}
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 static int mtk_scp_ultra_engine_state_get(struct snd_kcontrol *kcontrol,
 					  struct snd_ctl_elem_value *ucontrol)
 {
@@ -307,7 +322,10 @@ static int mtk_scp_ultra_engine_state_set(struct snd_kcontrol *kcontrol,
 		return -1;
 	}
 	scp_ultra->usnd_state = val;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	scp_ultra_memif_dl_id =
 		scp_ultra->scp_ultra_dl_memif_id;
 	scp_ultra_memif_ul_id =
@@ -321,11 +339,17 @@ static int mtk_scp_ultra_engine_state_set(struct snd_kcontrol *kcontrol,
 	switch (scp_ultra->usnd_state) {
 	case SCP_ULTRA_STATE_ON:
 		scp_register_feature(ULTRA_FEATURE_ID);
+<<<<<<< HEAD
 		aud_wake_lock(ultra_suspend_lock);
 
 		afe->memif[scp_ultra_memif_dl_id].scp_ultra_enable = true;
 		afe->memif[scp_ultra_memif_ul_id].scp_ultra_enable = true;
 
+=======
+		aud_wake_lock(&ultra_suspend_lock);
+		afe->memif[scp_ultra_memif_dl_id].scp_ultra_enable = true;
+		afe->memif[scp_ultra_memif_ul_id].scp_ultra_enable = true;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		payload[0] = param_config.rate_out;
 		payload[1] = param_config.channel_out;
 		payload[2] = param_config.period_out_size;
@@ -334,10 +358,17 @@ static int mtk_scp_ultra_engine_state_set(struct snd_kcontrol *kcontrol,
 		payload[5] = param_config.period_in_size;
 		payload[6] = param_config.target_out_channel;
 		ret_val = ultra_ipi_send(AUDIO_TASK_USND_MSG_ID_ON,
+<<<<<<< HEAD
 					false,
 					7,
 					&payload[0],
 					ULTRA_IPI_NEED_ACK);
+=======
+			       false,
+					7,
+					&payload[0],
+			       ULTRA_IPI_NEED_ACK);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		if (ret_val == 0) {
 			pr_info("%s() set state on failed\n", __func__);
 			scp_ultra->usnd_state = SCP_ULTRA_STATE_IDLE;
@@ -346,11 +377,18 @@ static int mtk_scp_ultra_engine_state_set(struct snd_kcontrol *kcontrol,
 			afe->memif[scp_ultra_memif_ul_id].scp_ultra_enable =
 				false;
 			scp_deregister_feature(ULTRA_FEATURE_ID);
+<<<<<<< HEAD
 			aud_wake_unlock(ultra_suspend_lock);
 			return -1;
 		}
 		return 0;
 
+=======
+			aud_wake_unlock(&ultra_suspend_lock);
+			return -1;
+		}
+		return 0;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	case SCP_ULTRA_STATE_OFF:
 		ultra_ipi_send(AUDIO_TASK_USND_MSG_ID_OFF,
 			       false,
@@ -358,7 +396,11 @@ static int mtk_scp_ultra_engine_state_set(struct snd_kcontrol *kcontrol,
 			       NULL,
 			       ULTRA_IPI_NEED_ACK);
 		scp_deregister_feature(ULTRA_FEATURE_ID);
+<<<<<<< HEAD
 		aud_wake_unlock(ultra_suspend_lock);
+=======
+		aud_wake_unlock(&ultra_suspend_lock);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		return 0;
 	case SCP_ULTRA_STATE_START:
 		ultra_ipi_send(AUDIO_TASK_USND_MSG_ID_START,
@@ -393,17 +435,27 @@ static int mtk_scp_ultra_engine_state_set(struct snd_kcontrol *kcontrol,
 			       ULTRA_IPI_NEED_ACK);
 		scp_deregister_feature(ULTRA_FEATURE_ID);
 		pm_runtime_put(afe->dev);
+<<<<<<< HEAD
 		aud_wake_unlock(ultra_suspend_lock);
+=======
+		aud_wake_unlock(&ultra_suspend_lock);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		return 0;
 	default:
 		pr_info("%s() err state, ignore\n", __func__);
 		return -1;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 	return 0;
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 static const struct snd_kcontrol_new ultra_platform_kcontrols[] = {
 	SOC_ENUM_EXT("mtk_scp_ultra_pcm_dump",
 		     mtk_scp_ultra_enum[0],
@@ -418,19 +470,31 @@ static const struct snd_kcontrol_new ultra_platform_kcontrols[] = {
 			  mtk_scp_ultra_gain_config_get,
 			  mtk_scp_ultra_gain_config_set),
 	SOC_SINGLE_EXT("mtk_scp_ultra_engine_state",
+<<<<<<< HEAD
 		     SND_SOC_NOPM, 0, 0xff, 0,
 		     mtk_scp_ultra_engine_state_get,
 		     mtk_scp_ultra_engine_state_set),
+=======
+		       SND_SOC_NOPM, 0, 0xff, 0,
+		       mtk_scp_ultra_engine_state_get,
+		       mtk_scp_ultra_engine_state_set),
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 };
 
 static int mtk_scp_ultra_pcm_open(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
 	struct snd_pcm_runtime *runtime = substream->runtime;
+<<<<<<< HEAD
 	struct snd_soc_component *component =
 		snd_soc_rtdcom_lookup(rtd, ULTRA_PCM_NAME);
 	struct mtk_base_scp_ultra *scp_ultra =
 		snd_soc_component_get_drvdata(component);
+=======
+	struct mtk_base_scp_ultra *scp_ultra =
+		snd_soc_platform_get_drvdata(rtd->platform);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	struct mtk_base_scp_ultra_mem *ultra_mem = &scp_ultra->ultra_mem;
 	struct mtk_base_afe *afe = ultra_get_afe_base();
 	int scp_ultra_memif_dl_id =
@@ -465,6 +529,7 @@ static int mtk_scp_ultra_pcm_open(struct snd_pcm_substream *substream)
 
 	return 0;
 }
+<<<<<<< HEAD
 static int mtk_scp_ultra_pcm_start(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
@@ -472,6 +537,14 @@ static int mtk_scp_ultra_pcm_start(struct snd_pcm_substream *substream)
 		snd_soc_rtdcom_lookup(rtd, ULTRA_PCM_NAME);
 	struct mtk_base_scp_ultra *scp_ultra =
 		snd_soc_component_get_drvdata(component);
+=======
+
+static int mtk_scp_ultra_pcm_start(struct snd_pcm_substream *substream)
+{
+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+	struct mtk_base_scp_ultra *scp_ultra =
+			snd_soc_platform_get_drvdata(rtd->platform);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	struct mtk_base_scp_ultra_mem *ultra_mem = &scp_ultra->ultra_mem;
 	struct mtk_base_afe *afe = ultra_get_afe_base();
 	struct mtk_base_afe_memif *memif =
@@ -485,6 +558,10 @@ static int mtk_scp_ultra_pcm_start(struct snd_pcm_substream *substream)
 	struct mtk_base_afe_irq *irqs_ul = &afe->irqs[irq_id_ul];
 	const struct mtk_base_irq_data *irq_data_ul = irqs_ul->irq_data;
 	int counter;
+<<<<<<< HEAD
+=======
+	int fs;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	/* Set dl&ul irq target to scp */
 	set_afe_dl_irq_target(true);
@@ -497,6 +574,23 @@ static int mtk_scp_ultra_pcm_start(struct snd_pcm_substream *substream)
 			<< irq_data_dl->irq_cnt_shift,
 			counter << irq_data_dl->irq_cnt_shift);
 
+<<<<<<< HEAD
+=======
+	/* set dl irq fs */
+	fs = afe->irq_fs(substream, param_config.rate_out);
+	if (fs < 0) {
+		dev_info(scp_ultra->dev, "%s() dl fs fail, rate=%d, fs=%d\n",
+			 __func__,
+			 param_config.rate_out,
+			 fs);
+		return -EINVAL;
+	}
+	regmap_update_bits(afe->regmap, irq_data_dl->irq_fs_reg,
+			irq_data_dl->irq_fs_maskbit
+			<< irq_data_dl->irq_fs_shift,
+			fs << irq_data_dl->irq_fs_shift);
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	/* start dl memif */
 	regmap_update_bits(afe->regmap,
 			memif->data->enable_reg,
@@ -510,6 +604,23 @@ static int mtk_scp_ultra_pcm_start(struct snd_pcm_substream *substream)
 			   << irq_data_ul->irq_cnt_shift,
 			   counter << irq_data_ul->irq_cnt_shift);
 
+<<<<<<< HEAD
+=======
+	/* set ul irq fs */
+	fs = afe->irq_fs(substream, param_config.rate_in);
+	if (fs < 0) {
+		dev_info(scp_ultra->dev, "%s() ul fs fail, rate=%d, fs=%d\n",
+			 __func__,
+			 param_config.rate_out,
+			 fs);
+		return -EINVAL;
+	}
+	regmap_update_bits(afe->regmap, irq_data_ul->irq_fs_reg,
+			   irq_data_ul->irq_fs_maskbit
+			   << irq_data_ul->irq_fs_shift,
+			   fs << irq_data_ul->irq_fs_shift);
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	/* Start ul memif */
 	regmap_update_bits(afe->regmap,
 			   memiful->data->enable_reg,
@@ -518,18 +629,29 @@ static int mtk_scp_ultra_pcm_start(struct snd_pcm_substream *substream)
 
 	/* start ul irq */
 	regmap_update_bits(afe->regmap, irq_data_ul->irq_en_reg,
+<<<<<<< HEAD
 			1 << irq_data_ul->irq_en_shift,
 			1 << irq_data_ul->irq_en_shift);
+=======
+			   1 << irq_data_ul->irq_en_shift,
+			   1 << irq_data_ul->irq_en_shift);
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return 0;
 }
 
 static int mtk_scp_ultra_pcm_stop(struct snd_pcm_substream *substream)
 {
 	struct snd_soc_pcm_runtime *rtd = substream->private_data;
+<<<<<<< HEAD
 	struct snd_soc_component *component =
 		snd_soc_rtdcom_lookup(rtd, ULTRA_PCM_NAME);
 	struct mtk_base_scp_ultra *scp_ultra =
 		snd_soc_component_get_drvdata(component);
+=======
+	struct mtk_base_scp_ultra *scp_ultra =
+			snd_soc_platform_get_drvdata(rtd->platform);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	struct mtk_base_scp_ultra_mem *ultra_mem = &scp_ultra->ultra_mem;
 	struct mtk_base_afe *afe = ultra_get_afe_base();
 	struct mtk_base_afe_memif *memif =
@@ -586,11 +708,22 @@ static int mtk_scp_ultra_pcm_stop(struct snd_pcm_substream *substream)
 	/* Set dl&ul irq to ap */
 	set_afe_dl_irq_target(false);
 	set_afe_ul_irq_target(false);
+<<<<<<< HEAD
 	return 0;
 }
 static int mtk_scp_ultra_pcm_close(struct snd_pcm_substream *substream)
 {
 	struct mtk_base_afe *afe = ultra_get_afe_base();
+=======
+
+	return 0;
+}
+
+static int mtk_scp_ultra_pcm_close(struct snd_pcm_substream *substream)
+{
+	struct mtk_base_afe *afe = ultra_get_afe_base();
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (pcm_dump_on) {
 		/* scp ultra dump buffer use dram */
 		if (afe->release_dram_resource)
@@ -638,6 +771,7 @@ static int mtk_scp_ultra_pcm_hw_trigger(struct snd_pcm_substream *substream,
 
 static int mtk_scp_ultra_pcm_new(struct snd_soc_pcm_runtime *rtd)
 {
+<<<<<<< HEAD
 	struct snd_soc_component *component =
 		snd_soc_rtdcom_lookup(rtd, ULTRA_PCM_NAME);
 	struct mtk_base_scp_ultra *scp_ultra =
@@ -656,6 +790,33 @@ static int mtk_scp_ultra_pcm_new(struct snd_soc_pcm_runtime *rtd)
 	pcm_dump_switch = false;
 	scp_ultra->usnd_state = SCP_ULTRA_STATE_IDLE;
 	return 0;
+=======
+	int ret = 0;
+	struct mtk_base_scp_ultra *scp_ultra =
+			snd_soc_platform_get_drvdata(rtd->platform);
+
+	dev_info(scp_ultra->dev, "%s()\n", __func__);
+
+	snd_soc_add_platform_controls(rtd->platform,
+				      ultra_platform_kcontrols,
+				      ARRAY_SIZE(ultra_platform_kcontrols));
+
+	ret = mtk_scp_ultra_reserved_dram_init();
+	if (ret < 0) {
+		pr_info("%s(), reserved dram init fail, ignore\n", __func__);
+		return ret;
+	}
+	ultra_ipi_register(ultra_ipi_rx_internal, ultra_ipi_rceive_ack);
+	audio_ipi_client_ultra_init();
+#ifdef CONFIG_MTK_TINYSYS_SCP_SUPPORT
+	scp_A_register_notify(&usnd_scp_recover_notifier);
+#endif
+	aud_wake_lock_init(&ultra_suspend_lock, "ultra wakelock");
+	pcm_dump_switch = false;
+	scp_ultra->usnd_state = SCP_ULTRA_STATE_IDLE;
+
+	return ret;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 static const struct snd_pcm_ops mtk_scp_ultra_pcm_ops = {
@@ -667,13 +828,18 @@ static const struct snd_pcm_ops mtk_scp_ultra_pcm_ops = {
 	.ioctl = snd_pcm_lib_ioctl,
 };
 
+<<<<<<< HEAD
 const struct snd_soc_component_driver mtk_scp_ultra_pcm_platform = {
 	.name = ULTRA_PCM_NAME,
+=======
+const struct snd_soc_platform_driver mtk_scp_ultra_pcm_platform = {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	.ops = &mtk_scp_ultra_pcm_ops,
 	.pcm_new = mtk_scp_ultra_pcm_new,
 };
 EXPORT_SYMBOL_GPL(mtk_scp_ultra_pcm_platform);
 
+<<<<<<< HEAD
 static int ultra_ipi_init(void)
 {
 	ultra_ipi_register(ultra_ipi_rx_internal, ultra_ipi_rceive_ack);
@@ -682,6 +848,8 @@ static int ultra_ipi_init(void)
 }
 late_initcall(ultra_ipi_init);
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 MODULE_DESCRIPTION("Mediatek scp ultra platform driver");
 MODULE_AUTHOR("Youwei Dong <Youwei.Dong@mediatek.com>");
 MODULE_LICENSE("GPL v2");
