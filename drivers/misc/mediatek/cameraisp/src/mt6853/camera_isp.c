@@ -443,6 +443,11 @@ static struct mutex open_isp_mutex;
 /* Get HW modules' base address from device nodes */
 #define ISP_CAMSYS_CONFIG_BASE (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs)
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #ifdef SUB_COMMON_CLR
 #define LARB_IDLE (0)
 #define LARB_BUSY (1)
@@ -451,6 +456,7 @@ static struct mutex open_isp_mutex;
 //-3x1_sub_common : 0x1a00c408[24:19]
 //-4x1_sub_common : 0x1a00d404[24:19]
 //-4x1_sub_common : 0x1a00d40c[24:19]
+<<<<<<< HEAD
 #define CAM_3X1_SUB_COMMON_C400 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xc400)
 #define CAM_3X1_SUB_COMMON_C404 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xc404)
 #define CAM_3X1_SUB_COMMON_C408 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xc408)
@@ -458,6 +464,11 @@ static struct mutex open_isp_mutex;
 #define CAM_4X1_SUB_COMMON_D400 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xd400)
 #define CAM_4X1_SUB_COMMON_D404 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xd404)
 #define CAM_4X1_SUB_COMMON_D408 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xd408)
+=======
+#define CAM_3X1_SUB_COMMON_C404 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xc404)
+#define CAM_3X1_SUB_COMMON_C408 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xc408)
+#define CAM_4X1_SUB_COMMON_D404 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xd404)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #define CAM_4X1_SUB_COMMON_D40C (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xd40c)
 
 #define CAM_4X1_SUB_COMMON_EN_D110 (isp_devs[ISP_CAMSYS_CONFIG_IDX].regs + 0xd110)
@@ -1035,6 +1046,7 @@ static struct _isp_bk_reg_t g_BkReg[ISP_IRQ_TYPE_AMOUNT];
 #ifdef SUB_COMMON_CLR
 static void ISP_SMI_CG_Dump(char *str, bool smi_dump_en)
 {
+<<<<<<< HEAD
 	LOG_DBG("%s: 3X1_SUB_COMMON_C404[19:24]= 0x%x\n",
 		str, (ISP_RD32(CAM_3X1_SUB_COMMON_C404) >> 19) & 0x3F);
 	LOG_DBG("%s: 3X1_SUB_COMMON_C408[19:24]= 0x%x\n",
@@ -1042,6 +1054,15 @@ static void ISP_SMI_CG_Dump(char *str, bool smi_dump_en)
 	LOG_DBG("%s: 4X1_SUB_COMMON_D404[19:24]= 0x%x\n",
 		str, (ISP_RD32(CAM_4X1_SUB_COMMON_D404) >> 19) & 0x3F);
 	LOG_INF("%s: 4X1_SUB_COMMON_D40C[19:24]= 0x%x\n",
+=======
+	LOG_DBG("%s: 3X1_SUB_COMMON_C404= 0x%x\n",
+		str, (ISP_RD32(CAM_3X1_SUB_COMMON_C404) >> 19) & 0x3F);
+	LOG_DBG("%s: 3X1_SUB_COMMON_C408= 0x%x\n",
+		str, (ISP_RD32(CAM_3X1_SUB_COMMON_C408) >> 19) & 0x3F);
+	LOG_DBG("%s: 4X1_SUB_COMMON_D404= 0x%x\n",
+		str, (ISP_RD32(CAM_4X1_SUB_COMMON_D404) >> 19) & 0x3F);
+	LOG_INF("%s: 4X1_SUB_COMMON_D40C= 0x%x\n",
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		str, (ISP_RD32(CAM_4X1_SUB_COMMON_D40C) >> 19) & 0x3F);
 
 	LOG_DBG("%s: (CG_CON/CG_SET/CG_CLR)= (0x%x/0x%x/0x%x)\n", str,
@@ -1105,6 +1126,7 @@ static void cam_subsys_debug_dump(enum subsys_id sys_id)
 			ISP_RD32(CAMSYS_REG_CG_SET),
 			ISP_RD32(CAMSYS_REG_CG_CLR));
 #ifdef SUB_COMMON_CLR
+<<<<<<< HEAD
 		LOG_INF("3X1_SUB_COMMON_C400= 0x%x\n", ISP_RD32(CAM_3X1_SUB_COMMON_C400));
 		LOG_INF("3X1_SUB_COMMON_C404= 0x%x\n", ISP_RD32(CAM_3X1_SUB_COMMON_C404));
 		LOG_INF("3X1_SUB_COMMON_C408= 0x%x\n", ISP_RD32(CAM_3X1_SUB_COMMON_C408));
@@ -1113,6 +1135,9 @@ static void cam_subsys_debug_dump(enum subsys_id sys_id)
 		LOG_INF("4X1_SUB_COMMON_D404= 0x%x\n", ISP_RD32(CAM_4X1_SUB_COMMON_D404));
 		LOG_INF("4X1_SUB_COMMON_D408= 0x%x\n", ISP_RD32(CAM_4X1_SUB_COMMON_D408));
 		LOG_INF("4X1_SUB_COMMON_D40C= 0x%x\n", ISP_RD32(CAM_4X1_SUB_COMMON_D40C));
+=======
+		ISP_SMI_CG_Dump("cam_subsys_debug_dump", false);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 	break;
 	default:
@@ -2202,6 +2227,7 @@ static inline void smi_control_clock_mtcmos(enum ISP_DEV_NODE_ENUM module, bool 
 #ifdef SUB_COMMON_CLR
 		unsigned int tmp_reg = 0x0;
 #endif
+<<<<<<< HEAD
 		LOG_INF("disable module(%d) CG/MTCMOS through SMI CLK API\n", module);
 
 #ifndef DISABLE_SV_TOP0
@@ -2211,6 +2237,11 @@ static inline void smi_control_clock_mtcmos(enum ISP_DEV_NODE_ENUM module, bool 
 #endif
 			for (inx = 0; inx < LARB13PORTSIZE; inx++) {
 				if (larb13_support_port_map[inx] == true) {
+=======
+		LOG_INF("disable CG/MTCMOS through SMI CLK API\n");
+		for (inx = 0; inx < LARB13PORTSIZE; inx++) {
+			if (larb13_support_port_map[inx] == true) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #ifndef CONFIG_MTK_SMI_EXT
 					smi_bus_disable_unprepare(
 					SMI_LARB13, larb13_port_Name[inx]);
@@ -2264,7 +2295,15 @@ static inline void smi_control_clock_mtcmos(enum ISP_DEV_NODE_ENUM module, bool 
 #endif
 			}
 		}
+#ifdef SUB_COMMON_CLR
+		/* Reset 4x1 sub common & dump.
+		 * [26:27]: SUB_COMMON_4X1_RST. 1 means reset; 0 means not clear.
+		 */
+		tmp_reg = ISP_RD32(CAMSYS_MAIN_CAMSYS_SW_RST);
+		tmp_reg = tmp_reg | 0x4000000;
+		ISP_WR32(CAMSYS_MAIN_CAMSYS_SW_RST, tmp_reg);
 
+<<<<<<< HEAD
 		if (module == ISP_CAM_B_IDX) {
 #ifdef SUB_COMMON_CLR
 			/* Reset 4x1 sub common & dump.
@@ -2294,6 +2333,28 @@ static inline void smi_control_clock_mtcmos(enum ISP_DEV_NODE_ENUM module, bool 
 			ISP_SMI_CG_Dump("after CAM_4X1_SUB_COMMON_EN_D110 ostd en set 1", false);
 #endif
 			for (inx = 0; inx < LARB17PORTSIZE; inx++) {
+=======
+		ISP_SMI_CG_Dump("after SUB_COMMON_4X1_RST reset", false);
+
+
+		/* Reset CAMSYS_RAWB & dump.
+		 * [0:1]: LARBX_RST. 1 means reset; 0 means not clear.
+		 */
+		tmp_reg = 0;
+		tmp_reg = ISP_RD32(CAMSYS_RAWB_CAMSYS_SW_RST);
+		tmp_reg = tmp_reg | 0x1;
+		ISP_WR32(CAMSYS_RAWB_CAMSYS_SW_RST, tmp_reg);
+
+
+		tmp_reg = 0;
+		tmp_reg = ISP_RD32(CAM_4X1_SUB_COMMON_EN_D110);
+		tmp_reg = tmp_reg | 0x4000;
+		ISP_WR32(CAM_4X1_SUB_COMMON_EN_D110, tmp_reg);
+
+		ISP_SMI_CG_Dump("after CAM_4X1_SUB_COMMON_EN_D110 ostd en set 1", false);
+#endif
+		for (inx = 0; inx < LARB17PORTSIZE; inx++) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #ifndef CONFIG_MTK_SMI_EXT
 				smi_bus_disable_unprepare(SMI_LARB17,
 					larb17_port_Name[inx]);
@@ -2334,6 +2395,32 @@ static inline void smi_control_clock_mtcmos(enum ISP_DEV_NODE_ENUM module, bool 
 			ISP_WR32(CAMSYS_RAWB_CAMSYS_SW_RST, tmp_reg);
 #endif
 		}
+#ifdef SUB_COMMON_CLR
+		ISP_SMI_CG_Dump("after disable larb17", false);
+
+		udelay(20); // delay 10us
+
+		tmp_reg = ISP_RD32(CAM_4X1_SUB_COMMON_EN_D110);
+		tmp_reg = tmp_reg & 0xFFFFBFFF;
+		ISP_WR32(CAM_4X1_SUB_COMMON_EN_D110, tmp_reg);
+
+		ISP_SMI_CG_Dump("after CAM_4X1_SUB_COMMON_EN_D110 ostd en set 0", false);
+
+		/* Release 4x1 sub common & dump */
+		tmp_reg = 0;
+		tmp_reg = ISP_RD32(CAMSYS_MAIN_CAMSYS_SW_RST);
+		tmp_reg = tmp_reg & 0xFBFFFFFF;
+		ISP_WR32(CAMSYS_MAIN_CAMSYS_SW_RST, tmp_reg);
+
+		ISP_SMI_CG_Dump("after SUB_COMMON_4X1_RST release", false);
+
+
+		/* Release CAMSYS_RAWB_CAMSYS_SW_RST & dump */
+		tmp_reg = 0;
+		tmp_reg = ISP_RD32(CAMSYS_RAWB_CAMSYS_SW_RST);
+		tmp_reg = tmp_reg & 0xFFFFFFFE;
+		ISP_WR32(CAMSYS_RAWB_CAMSYS_SW_RST, tmp_reg);
+#endif
 	}
 
 #endif
