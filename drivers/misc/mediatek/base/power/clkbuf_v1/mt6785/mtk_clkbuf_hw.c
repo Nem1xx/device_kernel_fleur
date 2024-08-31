@@ -18,7 +18,11 @@
 #include <mt-plat/mtk_boot.h>
 //#include <mt-plat/upmu_common.h>
 #include <linux/string.h>
+<<<<<<< HEAD
 #include <linux/delay.h>
+=======
+#include <linux/board_id.h>
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 static void __iomem *pwrap_base;
 
@@ -1500,10 +1504,33 @@ short is_clkbuf_bringup(void)
 
 void clk_buf_post_init(void)
 {
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_MTK_UFS_SUPPORT)
+	int boot_type;
+	int project_number;
+	boot_type = get_boot_type();
+	/* no need to use XO_EXT if storage is emmc */
+	if (boot_type != BOOTDEV_UFS) {
+		clk_buf_ctrl_internal(CLK_BUF_UFS, CLK_BUF_FORCE_OFF);
+		CLK_BUF7_STATUS = CLOCK_BUFFER_DISABLE;
+	}
+#else
+	clk_buf_ctrl_internal(CLK_BUF_UFS, CLK_BUF_FORCE_OFF);
+	CLK_BUF7_STATUS = CLOCK_BUFFER_DISABLE;
+#endif
+	project_number = board_id_get_hwversion_product_num();
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #ifndef CONFIG_NFC_CHIP_SUPPORT
 	/* no need to use XO_NFC if no NFC */
 	clk_buf_ctrl_internal(CLK_BUF_NFC, CLK_BUF_FORCE_OFF);
 	CLK_BUF3_STATUS = CLOCK_BUFFER_DISABLE;
+#else
+	if (project_number == 1 || project_number == 3) {
+		/* no need to use XO_NFC if no NFC */
+		clk_buf_ctrl_internal(CLK_BUF_NFC, CLK_BUF_FORCE_OFF);
+		CLK_BUF3_STATUS = CLOCK_BUFFER_DISABLE;
+	}
 #endif
 #ifdef CLKBUF_USE_BBLPM
 	if (bblpm_switch == 2) {
