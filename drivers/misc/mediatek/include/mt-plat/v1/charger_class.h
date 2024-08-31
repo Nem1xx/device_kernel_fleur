@@ -135,6 +135,13 @@ struct charger_ops {
 	/* charger type detection */
 	int (*enable_chg_type_det)(struct charger_device *dev, bool en);
 
+	/* HVDCP type detection */
+	int (*get_hvdcp_type)(struct charger_device *dev, u32 *type);
+	int (*get_hvdcp_dpdm_status)(struct charger_device *dev, bool *status);
+	int (*set_hvdcp_dpdm)(struct charger_device *dev);
+	int (*enable_hvdcp_det)(struct charger_device *dev, bool enable);
+	int (*check_hv_charging)(struct charger_device *dev);
+
 	/* run AICL */
 	int (*run_aicl)(struct charger_device *dev, u32 *uA);
 
@@ -169,6 +176,9 @@ struct charger_ops {
 	int (*enable_hz)(struct charger_device *dev, bool en);
 
 	int (*enable_bleed_discharge)(struct charger_device *dev, bool en);
+
+	/* vendor info */
+	int (*get_vendor_id)(struct charger_device *dev, u32 *vendor_id);
 };
 
 static inline void *charger_dev_get_drvdata(
@@ -250,6 +260,16 @@ extern int charger_dev_enable_powerpath(
 	struct charger_device *charger_dev, bool en);
 extern int charger_dev_enable_safety_timer(
 	struct charger_device *charger_dev, bool en);
+extern int charger_dev_get_hvdcp_type(
+	struct charger_device *chg_dev, u32 *type);
+extern int charger_dev_get_hvdcp_dpdm_status(
+	struct charger_device *chg_dev, bool *status);
+extern int charger_dev_set_hvdcp_dpdm(
+	struct charger_device *chg_dev);
+extern int charger_dev_enable_hvdcp_det(
+	struct charger_device *chg_dev, bool enable);
+extern int charger_dev_check_hv_charging(
+	struct charger_device *chg_dev);
 extern int charger_dev_enable_chg_type_det(
 	struct charger_device *charger_dev, bool en);
 extern int charger_dev_enable_otg(
@@ -268,6 +288,10 @@ extern int charger_dev_safety_check(
 	struct charger_device *charger_dev, u32 polling_ieoc);
 extern int charger_dev_enable_hz(
 	struct charger_device *charger_dev, bool en);
+
+/* vendor info */
+extern int charger_dev_get_vendor_id(
+	struct charger_device *charger_dev, u32 *vendor_id);
 
 /* PE+/PE+2.0 */
 extern int charger_dev_send_ta_current_pattern(
