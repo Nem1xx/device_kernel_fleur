@@ -7,6 +7,13 @@
 #define __SCP_EXCEP_H__
 
 #include <linux/sizes.h>
+<<<<<<< HEAD:drivers/misc/mediatek/scp/cm4/scp_excep.h
+=======
+#include "scp_helper.h"
+#include "scp_feature_define.h"
+#include "scp_ipi.h"
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/scp/mt6785/scp_excep.h
 
 #define AED_LOG_PRINT_SIZE	SZ_16K
 #define SCP_LOCK_OFS	0xE0

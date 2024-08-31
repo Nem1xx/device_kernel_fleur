@@ -74,6 +74,40 @@ struct scp_work_struct {
 	unsigned int id;
 };
 
+<<<<<<< HEAD:drivers/misc/mediatek/scp/cm4/scp_helper.h
+=======
+/* scp reserve memory ID definition*/
+enum scp_reserve_mem_id_t {
+#ifdef CONFIG_MTK_VOW_SUPPORT
+	VOW_MEM_ID,
+#endif
+	SENS_MEM_ID,
+	FLP_MEM_ID,
+	SCP_A_LOGGER_MEM_ID,
+#if defined(CONFIG_SND_SOC_MTK_SCP_SMARTPA) || \
+	defined(CONFIG_MTK_VOW_SUPPORT) || \
+	defined(CONFIG_MTK_ULTRASND_PROXIMITY)
+	AUDIO_IPI_MEM_ID,
+#endif
+#ifdef CONFIG_SND_SOC_MTK_SCP_SMARTPA
+	SPK_PROTECT_MEM_ID,
+	SPK_PROTECT_DUMP_MEM_ID,
+#endif
+#ifdef CONFIG_MTK_VOW_BARGE_IN_SUPPORT
+	VOW_BARGEIN_MEM_ID,
+#endif
+#ifdef SCP_PARAMS_TO_SCP_SUPPORT
+	SCP_DRV_PARAMS_MEM_ID,
+#endif
+#ifdef CONFIG_MTK_ULTRASND_PROXIMITY
+	ULTRA_MEM_ID,
+	SCP_ELLIPTIC_DEBUG_MEM,
+#endif
+	NUMS_MEM_ID,
+};
+
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/scp/mt6785/scp_helper.h
 struct scp_reserve_mblock {
 	enum scp_reserve_mem_id_t num;
 	u64 start_phys;

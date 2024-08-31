@@ -86,12 +86,20 @@ struct scp_feature_tb feature_table[NUM_FEATURE_ID] = {
 		.enable      = 0,
 		.sub_feature = 0,
 	},
+<<<<<<< HEAD:drivers/misc/mediatek/scp/cm4/scp_feature_table.c
+=======
+#ifdef CONFIG_MTK_ULTRASND_PROXIMITY
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/scp/mt6785/scp_feature_table.c
 	{
 		.feature     = ULTRA_FEATURE_ID,
 		.freq        = 200,
 		.enable      = 0,
 		.sub_feature = 0,
 	},
+<<<<<<< HEAD:drivers/misc/mediatek/scp/cm4/scp_feature_table.c
+=======
+#endif
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/scp/mt6785/scp_feature_table.c
 };
 
 
