@@ -231,6 +231,7 @@ static struct port_t md1_ccci_ports[] = {
 	{CCCI_IKERAW_TX, CCCI_IKERAW_RX, 1, 1, 0xFF, 0xFF,
 		MD1_NORMAL_HIF, PORT_F_WITH_CHAR_NODE,
 		&char_port_ops, 36, "ccci_ikeraw",},
+<<<<<<< HEAD
 	{CCCI_EPDG1_TX, CCCI_EPDG1_RX, 1, 1, 0xFF, 0xFF,
 		MD1_NORMAL_HIF, PORT_F_WITH_CHAR_NODE,
 		&char_port_ops, 37, "ccci_epdg1",},
@@ -243,6 +244,9 @@ static struct port_t md1_ccci_ports[] = {
 	{CCCI_EPDG4_TX, CCCI_EPDG4_RX, 1, 1, 0xFF, 0xFF,
 		MD1_NORMAL_HIF, PORT_F_WITH_CHAR_NODE,
 		&char_port_ops, 40, "ccci_epdg4",},
+=======
+#endif
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	/* misc kernel port */
 	{CCCI_MIPI_CHANNEL_TX, CCCI_MIPI_CHANNEL_RX, 1, 1, 0xFF, 0xFF,
 		MD1_NORMAL_HIF, 0,
