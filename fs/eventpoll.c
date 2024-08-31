@@ -1477,7 +1477,11 @@ static int ep_insert(struct eventpoll *ep, const struct epoll_event *event,
 	 * this operation completes, the poll callback can start hitting
 	 * the new item.
 	 */
+<<<<<<< HEAD
 	revents = ep_item_poll(epi, &epq.pt, 1);
+=======
+	revents = ep_item_poll(epi, &epq.pt);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	/*
 	 * We have to check if something went wrong during the poll wait queue

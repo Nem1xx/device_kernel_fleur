@@ -32,7 +32,11 @@ static void *seq_buf_alloc(unsigned long size)
 	if (unlikely(size > MAX_RW_COUNT))
 		return NULL;
 
+<<<<<<< HEAD
 	return kvmalloc(size, GFP_KERNEL_ACCOUNT);
+=======
+	return kvmalloc(size, GFP_KERNEL);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 /**
