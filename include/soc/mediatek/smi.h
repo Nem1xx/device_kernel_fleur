@@ -17,7 +17,10 @@
 #define RESET_CELL_NUM			(2)
 #define MAX_LARB_FOR_CLAMP		(6)
 #define MAX_COMMON_FOR_CLAMP	(3)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 struct mtk_smi_larb_iommu {
 	struct device *dev;
 	unsigned int   mmu;
