@@ -394,3 +394,11 @@ CONFIG_SCHEDSTATS=y
 CONFIG_RCU_CPU_STALL_TIMEOUT=60
 CONFIG_FAULT_INJECTION=y
 CONFIG_ENABLE_DEFAULT_TRACERS=y
+<<<<<<< HEAD:arch/arm64/configs/k68v1_64_k419_defconfig
+=======
+CONFIG_MTK_SCHED_TRACERS=y
+CONFIG_STATIC_USERMODEHELPER_PATH="/system_ext/bin/aee_core_forwarder"
+CONFIG_SECURITY_SELINUX_DEVELOP=y
+CONFIG_CRYPTO_TWOFISH=y
+# CONFIG_CRYPTO_HW is not set
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):arch/arm64/configs/k6781v1_64_armv82_defconfig
