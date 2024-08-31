@@ -2036,7 +2036,11 @@ irqreturn_t musb_interrupt(struct musb *musb)
 				static DEFINE_RATELIMIT_STATE(rlmt, HZ, 2);
 				static int skip_cnt;
 
+<<<<<<< HEAD
 				if (musb_host_db_enable && host_tx_refcnt_dec(ep_num) < 0) {
+=======
+				if ((host_tx_refcnt_dec(ep_num) < 0) && musb_host_db_enable) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 					int ref_cnt;
 
 					musb_host_db_workaround_cnt++;

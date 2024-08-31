@@ -231,14 +231,20 @@ static void mt_usb_wakeup(struct musb *musb, bool enable)
 
 	DBG(0, "connection=%d\n", is_con);
 
+<<<<<<< HEAD
 #ifdef CONFIG_MTK_MUSB_PHY
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	USBPHY_SET32(0x68, (0x1 << 18));
 	USBPHY_CLR32(0x68, (0x1 << 3));
 	USBPHY_SET32(0x68, (0x1 << 3));
 	udelay(30);
 	USBPHY_CLR32(0x68, (0x1 << 18));
 	USBPHY_CLR32(0x68, (0x1 << 3));
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	if (enable) {
 		regmap_read(pericfg, USB_WAKEUP_DEC_CON1, &tmp);

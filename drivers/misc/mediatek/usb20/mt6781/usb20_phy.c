@@ -27,6 +27,20 @@
 #endif
 
 #include <mt-plat/mtk_boot_common.h>
+/*2021.08.13 longcheer xugui get cmdline is_lcm_connected start*/
+static unsigned int is_lcmconnected;
+static int __init is_lcm_get(char *line)
+{
+	if (!strcmp(line, "1")) {
+		is_lcmconnected = 1;
+	} else {
+		is_lcmconnected = 0;
+	}
+	DBG(0, "is_lcmconnected = %d\n", is_lcmconnected);
+	return 1;
+}
+__setup("is_lcm_connected=", is_lcm_get);
+/*2021.08.13 longcheer xugui get cmdline is_lcm_connected end*/
 
 #define FRA (48)
 #define PARA (28)
@@ -103,10 +117,12 @@ void usb_phy_switch_to_usb(void)
 #define SHFT_RG_USB20_PHY_REV6 30
 void usb_phy_tuning(void)
 {
-	static bool inited;
+	//static bool inited; //2021.08.13 longcheer xugui Remove unnecessary variables
 	static s32 u2_vrt_ref, u2_term_ref, u2_enhance;
-	struct device_node *of_node;
+	//struct device_node *of_node; //2021.08.13 longcheer xugui Remove unnecessary variables
 
+/*2021.08.13 longcheer xugui Remove node resolution and use master-slave recognition instead start*/
+#if 0
 	if (!inited) {
 		/* apply default value */
 		u2_vrt_ref = -1;
@@ -126,6 +142,27 @@ void usb_phy_tuning(void)
 		}
 		inited = true;
 	}
+#endif
+/*2021.08.13 longcheer xugui Remove node resolution and use master-slave recognition instead end*/
+
+/*2021.08.13 longcheer xugui usb_phy_tuning start*/
+	if (mtk_musb->is_host) {
+		DBG(0, "usb_phy_tuning_host\n");
+		u2_vrt_ref = 4;
+		u2_term_ref = 4;
+		u2_enhance = 1;
+	} else {
+		if (is_lcmconnected == 1) {
+			u2_vrt_ref = 7;
+			u2_term_ref = 6;
+			u2_enhance = 3;
+		} else if (is_lcmconnected == 0) {
+			u2_vrt_ref = 6;
+			u2_term_ref = 6;
+			u2_enhance = 1;
+		}
+	}
+/*2021.08.13 longcheer xugui usb_phy_tuning end*/
 
 	if (u2_vrt_ref != -1) {
 		if (u2_vrt_ref <= VAL_MAX_WIDTH_3) {
