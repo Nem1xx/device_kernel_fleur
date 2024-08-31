@@ -130,7 +130,10 @@ static bool VowDrv_SetBargeIn(unsigned int set, unsigned int irq_id);
 static int vow_service_SearchSpeakerModelWithId(int id);
 static DEFINE_MUTEX(vow_vmalloc_lock);
 static DEFINE_MUTEX(vow_extradata_mutex);
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver01/vow.c
 static DEFINE_MUTEX(voicedata_mutex);
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v01/vow.c
 
 /*****************************************************************************
  * VOW SERVICES
@@ -577,6 +580,21 @@ static void vow_service_Init(void)
 			vowserv.vow_speaker_model[I].flag = 0;
 			vowserv.vow_speaker_model[I].enabled = 0;
 		}
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver01/vow.c
+=======
+		vowserv.voicddata_scp_ptr =
+		    (char *)(scp_get_reserve_mem_virt(VOW_MEM_ID))
+		    + VOW_VOICEDATA_OFFSET;
+		vowserv.voicedata_scp_addr =
+		    scp_get_reserve_mem_phys(VOW_MEM_ID) + VOW_VOICEDATA_OFFSET;
+		/* Extra data */
+		vowserv.extradata_ptr =
+		    (char *)(scp_get_reserve_mem_virt(VOW_MEM_ID))
+		    + VOW_EXTRA_DATA_OFFSET;
+		vowserv.extradata_addr =
+		    scp_get_reserve_mem_phys(VOW_MEM_ID)
+		    + VOW_EXTRA_DATA_OFFSET;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v01/vow.c
 		mutex_lock(&vow_extradata_mutex);
 		vowserv.extradata_mem_ptr = NULL;
 		mutex_unlock(&vow_extradata_mutex);
@@ -597,8 +615,12 @@ static void vow_service_Init(void)
 #endif
 		//set default value to platform identifier and version
 		memset(vowserv.google_engine_arch, 0, VOW_ENGINE_INFO_LENGTH_BYTE);
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver01/vow.c
 		if (sprintf(vowserv.google_engine_arch, "dd906fa0-d329-3961-8b53-5e2072ca1ff6") < 0)
 			VOWDRV_DEBUG("%s(), sprintf failed\n", __func__);
+=======
+		sprintf(vowserv.google_engine_arch, "dd906fa0-d329-3961-8b53-5e2072ca1ff6");
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v01/vow.c
 		vowserv.google_engine_version = DEFAULT_GOOGLE_ENGINE_VER;
 		memset(vowserv.alexa_engine_version, 0, VOW_ENGINE_INFO_LENGTH_BYTE);
 	} else {
@@ -639,7 +661,10 @@ static int vow_service_GetParameter(unsigned long arg)
 			     vow_info_ap[3]);
 		return -EFAULT;
 	}
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver01/vow.c
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v01/vow.c
 	memcpy(vowserv.vow_info_apuser, vow_info_ap,
 	       sizeof(vow_info_ap));
 	VOWDRV_DEBUG(
@@ -659,10 +684,13 @@ static int vow_service_GetParameter(unsigned long arg)
 #ifdef CONFIG_MTK_TINYSYS_SCP_SUPPORT
 static int vow_service_CopyModel(int slot)
 {
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver01/vow.c
 	if (slot >= MAX_VOW_SPEAKER_MODEL || slot < 0) {
 		VOWDRV_DEBUG("%s(), slot id=%d, over range\n", __func__, slot);
 		return -EDOM;
 	}
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v01/vow.c
 	if (copy_from_user((void *)(vowserv.vow_speaker_model[slot].model_ptr),
 			   (const void __user *)(vowserv.vow_info_apuser[2]),
 			   vowserv.vow_info_apuser[3])) {
@@ -1080,7 +1108,11 @@ static bool vow_service_SetVBufAddr(unsigned long arg)
 		mutex_unlock(&vow_vmalloc_lock);
 		return false;
 	}
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver01/vow.c
 	vowserv.voicedata_kernel_ptr = vmalloc(VOW_VBUF_LENGTH);
+=======
+	vowserv.voicedata_kernel_ptr = vmalloc(vow_info[3]);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v01/vow.c
 	mutex_unlock(&vow_vmalloc_lock);
 	return true;
 }

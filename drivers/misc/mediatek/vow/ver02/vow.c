@@ -86,6 +86,7 @@ static int vow_service_SearchSpeakerModelWithKeyword(int keyword);
 static int vow_service_SearchSpeakerModelWithId(int id);
 #ifdef CONFIG_MTK_VOW_1STSTAGE_PCMCALLBACK
 static void vow_service_ReadPayloadDumpData(unsigned int buf_length);
+static DEFINE_MUTEX(vow_payloaddump_mutex);
 #endif
 static DEFINE_MUTEX(vow_vmalloc_lock);
 static DEFINE_MUTEX(vow_extradata_mutex);
@@ -538,7 +539,18 @@ static void vow_service_Init(void)
 		vowserv.payloaddump_user_addr = 0;
 		vowserv.payloaddump_user_max_size = 0;
 		vowserv.payloaddump_user_return_size_addr = 0;
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver02/vow.c
+=======
+		vowserv.payloaddump_scp_ptr =
+		    (char *)(scp_get_reserve_mem_virt(VOW_MEM_ID))
+		    + VOW_VOICEDATA_OFFSET + VOW_VOICEDATA_SIZE;
+		vowserv.payloaddump_scp_addr =
+		    scp_get_reserve_mem_phys(VOW_MEM_ID)
+		    + VOW_VOICEDATA_OFFSET + VOW_VOICEDATA_SIZE;
+		mutex_lock(&vow_payloaddump_mutex);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v02/vow.c
 		vowserv.payloaddump_kernel_ptr = NULL;
+		mutex_unlock(&vow_payloaddump_mutex);
 		vowserv.payloaddump_length = 0;
 #endif
 		vowserv.voicedata_kernel_ptr = NULL;
@@ -559,8 +571,12 @@ static void vow_service_Init(void)
 		vowserv.mtkif_type = 0;
 		//set default value to platform identifier and version
 		memset(vowserv.google_engine_arch, 0, VOW_ENGINE_INFO_LENGTH_BYTE);
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver02/vow.c
 		if (sprintf(vowserv.google_engine_arch, "32fe89be-5205-3d4b-b8cf-55d650d9d200") < 0)
 			VOWDRV_DEBUG("%s(), sprintf fail", __func__);
+=======
+		sprintf(vowserv.google_engine_arch, "32fe89be-5205-3d4b-b8cf-55d650d9d200");
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v02/vow.c
 		vowserv.google_engine_version = DEFAULT_GOOGLE_ENGINE_VER;
 		memset(vowserv.alexa_engine_version, 0, VOW_ENGINE_INFO_LENGTH_BYTE);
 	} else {
@@ -593,6 +609,15 @@ static void vow_service_Init(void)
 			VOWDRV_DEBUG(
 			"IPIMSG_VOW_APREGDATA_ADDR ipi send error\n");
 		}
+<<<<<<< HEAD:drivers/misc/mediatek/vow/ver02/vow.c
+=======
+		vow_ipi_send(IPIMSG_VOW_GET_ALEXA_ENGINE_VER, 0, NULL,
+				 VOW_IPI_BYPASS_ACK);
+		vow_ipi_send(IPIMSG_VOW_GET_GOOGLE_ENGINE_VER, 0, NULL,
+				 VOW_IPI_BYPASS_ACK);
+		vow_ipi_send(IPIMSG_VOW_GET_GOOGLE_ARCH, 0, NULL,
+				 VOW_IPI_BYPASS_ACK);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/vow/v02/vow.c
 #if VOW_PRE_LEARN_MODE
 		VowDrv_SetFlag(VOW_FLAG_PRE_LEARN, true);
 #endif
@@ -1208,11 +1233,11 @@ static void vow_service_ReadPayloadDumpData(unsigned int buf_length)
 	unsigned int tx_len;
 	unsigned int ret;
 
-	VOW_ASSERT(vowserv.payloaddump_kernel_ptr != NULL);
-
 	// copy from DRAM to get payload data
+	mutex_lock(&vow_payloaddump_mutex);
 	memcpy(&vowserv.payloaddump_kernel_ptr[0],
 	       vowserv.payloaddump_scp_ptr, buf_length);
+	mutex_unlock(&vow_payloaddump_mutex);
 
 	//copy to user space
 	tx_len = buf_length;
@@ -1226,10 +1251,12 @@ static void vow_service_ReadPayloadDumpData(unsigned int buf_length)
 		      (void __user *)(vowserv.payloaddump_user_return_size_addr),
 		      &tx_len,
 		      sizeof(unsigned int));
+	mutex_lock(&vow_payloaddump_mutex);
 	ret = copy_to_user(
 		      (void __user *)vowserv.payloaddump_user_addr,
 		      vowserv.payloaddump_kernel_ptr,
 		      tx_len);
+	mutex_unlock(&vow_payloaddump_mutex);
 }
 #endif
 
@@ -2567,20 +2594,30 @@ static long VowDrv_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
 		break;
 #ifdef CONFIG_MTK_VOW_1STSTAGE_PCMCALLBACK
 	case VOW_SET_PAYLOADDUMP_INFO: {
-		struct vow_payloaddump_info_t payloaddump_temp;
+		struct vow_payloaddump_info_t payload;
 
-		copy_from_user((void *)&payloaddump_temp,
+		copy_from_user((void *)&payload,
 				 (const void __user *)arg,
 				 sizeof(struct vow_payloaddump_info_t));
+		/* add return condition */
+		if ((payload.return_payloaddump_addr == 0) ||
+		    (payload.max_payloaddump_size != VOW_VOICEDATA_SIZE)) {
+			VOWDRV_DEBUG("vow check payload fail: addr_%x, size_%x\n",
+			     (unsigned int)payload.return_payloaddump_addr,
+			     (unsigned int)payload.max_payloaddump_size);
+			return false;
+		}
+
 		vowserv.payloaddump_user_addr =
-		    payloaddump_temp.return_payloaddump_addr;
+		    payload.return_payloaddump_addr;
 		vowserv.payloaddump_user_max_size =
-		    payloaddump_temp.max_payloaddump_size;
+		    payload.max_payloaddump_size;
 		vowserv.payloaddump_user_return_size_addr =
-		    payloaddump_temp.return_payloaddump_size_addr;
+		    payload.return_payloaddump_size_addr;
 		pr_debug("-VOW_SET_PAYLOADDUMP_INFO(addr=%lu, sz=%lu)",
 			 vowserv.payloaddump_user_addr,
 			 vowserv.payloaddump_user_max_size);
+		mutex_lock(&vow_payloaddump_mutex);
 		if (vowserv.payloaddump_kernel_ptr != NULL) {
 			vfree(vowserv.payloaddump_kernel_ptr);
 			vowserv.payloaddump_kernel_ptr = NULL;
@@ -2591,6 +2628,7 @@ static long VowDrv_ioctl(struct file *fp, unsigned int cmd, unsigned long arg)
 		} else {
 			ret = -EFAULT;
 		}
+		mutex_unlock(&vow_payloaddump_mutex);
 	}
 		break;
 #endif
