@@ -12,6 +12,11 @@
 #include "ufshpb.h"
 #endif
 
+#if defined(CONFIG_UFS_CHECK) && defined(CONFIG_FACTORY_BUILD)
+#include <asm/unaligned.h>
+#include "ufs-check.h"
+#endif
+
 #define QUERY_REQ_TIMEOUT				1500 /* msec */
 
 static inline void ufsf_init_query(struct ufs_hba *hba,
@@ -107,6 +112,8 @@ int ufsf_query_flag_retry(struct ufs_hba *hba, enum query_opcode opcode,
 	int ret;
 	int retries;
 
+	BUG_ON(idx > 7);
+
 	for (retries = 0; retries < UFSF_QUERY_REQ_RETRIES; retries++) {
 		ret = ufsf_query_flag(hba, opcode, idn, idx, flag_res);
 		if (ret)
@@ -187,21 +194,33 @@ static int ufsf_read_dev_desc(struct ufsf_feature *ufsf, u8 selector)
 		return ret;
 
 	ufsf->num_lu = desc_buf[DEVICE_DESC_PARAM_NUM_LU];
-	INIT_INFO("device lu count %d", ufsf->num_lu);
+	INFO_MSG("device lu count %d", ufsf->num_lu);
 
-	INIT_INFO("sel=%u length=%u(0x%x) bSupport=0x%.2x, extend=0x%.2x_%.2x",
-		  selector, desc_buf[DEVICE_DESC_PARAM_LEN],
-		  desc_buf[DEVICE_DESC_PARAM_LEN],
-		  desc_buf[DEVICE_DESC_PARAM_FEAT_SUP],
-		  desc_buf[DEVICE_DESC_PARAM_EX_FEAT_SUP+2],
-		  desc_buf[DEVICE_DESC_PARAM_EX_FEAT_SUP+3]);
+	INFO_MSG("sel=%u length=%u(0x%x) bSupport=0x%.2x, extend=0x%.2x_%.2x",
+		 selector, desc_buf[DEVICE_DESC_PARAM_LEN],
+		 desc_buf[DEVICE_DESC_PARAM_LEN],
+		 desc_buf[DEVICE_DESC_PARAM_FEAT_SUP],
+		 desc_buf[DEVICE_DESC_PARAM_EX_FEAT_SUP+2],
+		 desc_buf[DEVICE_DESC_PARAM_EX_FEAT_SUP+3]);
 
+	INFO_MSG("Driver Feature Version : (%.6X%s)", UFSFEATURE_DD_VER,
+		 UFSFEATURE_DD_VER_POST);
+
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_HPB)
 	ufshpb_get_dev_info(&ufsf->hpb_dev_info, desc_buf);
 #endif
 
 #if defined(CONFIG_SCSI_UFS_TW)
 	ufstw_get_dev_info(&ufsf->tw_dev_info, desc_buf);
+=======
+#if defined(CONFIG_UFSHPB)
+	ufshpb_get_dev_info(ufsf, desc_buf);
+#endif
+
+#if defined(CONFIG_UFSTW)
+	ufstw_get_dev_info(ufsf, desc_buf);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 	return 0;
 }
@@ -210,11 +229,13 @@ static int ufsf_read_geo_desc(struct ufsf_feature *ufsf, u8 selector)
 {
 	u8 geo_buf[UFSF_QUERY_DESC_GEOMETRY_MAX_SIZE];
 	int ret;
+	u64 total_size = 0;
 
 	ret = ufsf_read_desc(ufsf->hba, QUERY_DESC_IDN_GEOMETRY, 0, selector,
 			     geo_buf, UFSF_QUERY_DESC_GEOMETRY_MAX_SIZE);
 	if (ret)
 		return ret;
+<<<<<<< HEAD
 
 #if defined(CONFIG_SCSI_UFS_HPB)
 	if (ufsf->hpb_dev_info.hpb_device)
@@ -224,12 +245,25 @@ static int ufsf_read_geo_desc(struct ufsf_feature *ufsf, u8 selector)
 #if defined(CONFIG_SCSI_UFS_TW)
 	if (ufsf->tw_dev_info.tw_device)
 		ufstw_get_geo_info(&ufsf->tw_dev_info, geo_buf);
+=======
+#if defined(CONFIG_UFS_CHECK) && defined(CONFIG_FACTORY_BUILD)
+	total_size = get_unaligned_be64(&geo_buf[0x04]);
+	fill_total_gb(ufsf->hba, total_size);
+#endif
+#if defined(CONFIG_UFSHPB)
+	if (ufshpb_get_state(ufsf) == HPB_NEED_INIT)
+		ufshpb_get_geo_info(ufsf, geo_buf);
+#endif
+
+#if defined(CONFIG_UFSTW)
+	if (ufstw_get_state(ufsf) == TW_NEED_INIT)
+		ufstw_get_geo_info(ufsf, geo_buf);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 	return 0;
 }
 
-static int ufsf_read_unit_desc(struct ufsf_feature *ufsf,
-			       unsigned int lun, u8 selector)
+static void ufsf_read_unit_desc(struct ufsf_feature *ufsf, int lun, u8 selector)
 {
 	u8 unit_buf[UFSF_QUERY_DESC_UNIT_MAX_SIZE];
 	int lu_enable, ret = 0;
@@ -237,12 +271,13 @@ static int ufsf_read_unit_desc(struct ufsf_feature *ufsf,
 	ret = ufsf_read_desc(ufsf->hba, QUERY_DESC_IDN_UNIT, lun, selector,
 			     unit_buf, UFSF_QUERY_DESC_UNIT_MAX_SIZE);
 	if (ret) {
-		ERR_MSG("read unit desc failed. ret %d", ret);
+		ERR_MSG("read unit desc failed. ret (%d)", ret);
 		goto out;
 	}
 
 	lu_enable = unit_buf[UNIT_DESC_PARAM_LU_ENABLE];
 	if (!lu_enable)
+<<<<<<< HEAD
 		return 0;
 
 #if defined(CONFIG_SCSI_UFS_HPB)
@@ -258,19 +293,40 @@ static int ufsf_read_unit_desc(struct ufsf_feature *ufsf,
 		ret = ufstw_get_lu_info(ufsf, lun, unit_buf);
 		if (ret == -ENOMEM)
 			goto out;
+=======
+		return;
+#if defined(CONFIG_UFS_CHECK) && defined(CONFIG_FACTORY_BUILD)
+	else if (lun == 2 && lu_enable != 2)
+		check_hpb_and_tw_provsion(ufsf->hba);
+#endif
+#if defined(CONFIG_UFSHPB)
+	if (ufshpb_get_state(ufsf) == HPB_NEED_INIT)
+		ufshpb_get_lu_info(ufsf, lun, unit_buf);
+#endif
+
+#if defined(CONFIG_UFSTW)
+	if (ufstw_get_state(ufsf) == TW_NEED_INIT)
+		ufstw_alloc_lu(ufsf, lun, unit_buf);
+#endif
+#if defined(CONFIG_UFS_CHECK) && defined(CONFIG_FACTORY_BUILD)
+	if (lun == 2 && ufsf->hba->card->wmanufacturerid != UFS_VENDOR_SKHYNIX) {
+		if (check_wb_hpb_size(ufsf->hba) == -1)
+			check_hpb_and_tw_provsion(ufsf->hba);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 #endif
 out:
-	return ret;
+	return;
 }
 
 void ufsf_device_check(struct ufs_hba *hba)
 {
 	struct ufsf_feature *ufsf = &hba->ufsf;
-	int ret;
-	unsigned int lun;
+	int ret, lun;
+	u32 status;
 	u8 selector = 0;
 
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_HPB)
 	if (ufsf->ufshpb_state == HPB_RESET)
 		return;
@@ -286,7 +342,20 @@ void ufsf_device_check(struct ufs_hba *hba)
 
 	if (hba->dev_info.wmanufacturerid == UFS_VENDOR_SAMSUNG ||
 		hba->dev_info.wmanufacturerid == UFS_VENDOR_MICRON)
+=======
+	ufsf->hba = hba;
+
+	if (hba->card->wmanufacturerid == UFS_VENDOR_SAMSUNG ||
+	    hba->card->wmanufacturerid == UFS_VENDOR_MICRON) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		selector = UFSFEATURE_SELECTOR;
+		if (hba->card->wmanufacturerid == UFS_VENDOR_SAMSUNG) {
+			ufshcd_query_attr(ufsf->hba, UPIU_QUERY_OPCODE_READ_ATTR,
+					QUERY_ATTR_IDN_SUP_VENDOR_OPTIONS, 0, 0, &status);
+			INFO_MSG("UFS FEATURE SELECTOR Dev %d - D/D %d", status,
+						UFSFEATURE_SELECTOR);
+			}
+	    }
 
 	ret = ufsf_read_dev_desc(ufsf, selector);
 	if (ret)
@@ -296,6 +365,7 @@ void ufsf_device_check(struct ufs_hba *hba)
 	if (ret)
 		return;
 
+<<<<<<< HEAD
 	seq_scan_lu(lun) {
 		ret = ufsf_read_unit_desc(ufsf, lun, selector);
 		if (ret == -ENOMEM)
@@ -319,12 +389,16 @@ out_free_mem:
 	atomic_set(&ufsf->tw_state, TW_NOT_SUPPORTED);
 #endif
 	return;
+=======
+	seq_scan_lu(lun)
+		ufsf_read_unit_desc(ufsf, lun, selector);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 static void ufsf_print_query_buf(unsigned char *field, int size)
 {
 	unsigned char buf[255];
-	unsigned int count = 0;
+	int count = 0;
 	int i;
 
 	count += snprintf(buf, 8, "(0x00):");
@@ -351,6 +425,66 @@ inline int ufsf_check_query(__u32 opcode)
 	return (opcode & 0xffff0000) >> 16 == UFSFEATURE_QUERY_OPCODE;
 }
 
+static inline void ufsf_set_read10_debug_cmd(unsigned char *cdb, int lba,
+					     int len)
+{
+	cdb[0] = READ_10;
+	cdb[1] = 0x02;
+	cdb[2] = GET_BYTE_3(lba);
+	cdb[3] = GET_BYTE_2(lba);
+	cdb[4] = GET_BYTE_1(lba);
+	cdb[5] = GET_BYTE_0(lba);
+	cdb[6] = GET_BYTE_2(len);
+	cdb[7] = GET_BYTE_1(len);
+	cdb[8] = GET_BYTE_0(len);
+}
+
+static int ufsf_execute_read10_debug(struct ufsf_feature *ufsf, int lun,
+				     unsigned char *cdb, void *buf, int len)
+{
+	struct scsi_sense_hdr sshdr;
+	struct scsi_device *sdev;
+	int ret = 0;
+
+	sdev = ufsf->sdev_ufs_lu[lun];
+	if (!sdev) {
+		ERR_MSG("cannot find scsi_device");
+		return -ENODEV;
+	}
+
+	ret = ufsf_get_scsi_device(ufsf->hba, sdev);
+	if (ret)
+		return ret;
+
+	ufsf->issue_read10_debug = true;
+
+	ret = scsi_execute(sdev, cdb, DMA_FROM_DEVICE, buf, len, NULL, &sshdr,
+			   msecs_to_jiffies(30000), 3, 0, 0, NULL);
+
+	ufsf->issue_read10_debug = false;
+
+	scsi_device_put(sdev);
+
+	return ret;
+}
+
+int ufsf_issue_read10_debug(struct ufsf_feature *ufsf, int lun,
+			    unsigned char *buf, int buf_len)
+{
+	unsigned char cdb[10] = { 0 };
+	int cmd_len = buf_len >> OS_PAGE_SHIFT;
+	int ret = 0;
+
+	ufsf_set_read10_debug_cmd(cdb, READ10_DEBUG_LBA, cmd_len);
+
+	ret = ufsf_execute_read10_debug(ufsf, lun, cdb, buf, buf_len);
+
+	if (ret < 0)
+		ERR_MSG("failed with err %d", ret);
+
+	return ret;
+}
+
 int ufsf_query_ioctl(struct ufsf_feature *ufsf, unsigned int lun,
 		     void __user *buffer,
 		     struct ufs_ioctl_query_data_hpb *ioctl_data, u8 selector)
@@ -369,10 +503,6 @@ int ufsf_query_ioctl(struct ufsf_feature *ufsf, unsigned int lun,
 
 	buf_len = (ioctl_data->idn == QUERY_DESC_IDN_STRING) ?
 		IOCTL_DEV_CTX_MAX_SIZE : QUERY_DESC_MAX_SIZE;
-	if (ioctl_data->buf_size > buf_len) {
-		err = -EINVAL;
-		goto out;
-	}
 
 	kernel_buf = kzalloc(buf_len, GFP_KERNEL);
 	if (!kernel_buf) {
@@ -404,20 +534,21 @@ int ufsf_query_ioctl(struct ufsf_feature *ufsf, unsigned int lun,
 			break;
 
 		case QUERY_DESC_IDN_STRING:
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_HPB)
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 			if (!ufs_is_valid_unit_desc_lun(lun)) {
 				ERR_MSG("No unit descriptor for lun 0x%x", lun);
 				err = -EINVAL;
 				goto out_release_mem;
 			}
-			err = ufshpb_issue_req_dev_ctx(ufsf->ufshpb_lup[lun],
-						       kernel_buf,
-						       ioctl_data->buf_size);
+			err = ufsf_issue_read10_debug(ufsf, lun, kernel_buf,
+						      ioctl_data->buf_size);
 			if (err < 0)
 				goto out_release_mem;
 
 			goto copy_buffer;
-#endif
 		case QUERY_DESC_IDN_DEVICE:
 		case QUERY_DESC_IDN_GEOMETRY:
 		case QUERY_DESC_IDN_CONFIGURATION:
@@ -443,9 +574,11 @@ int ufsf_query_ioctl(struct ufsf_feature *ufsf, unsigned int lun,
 	if (err)
 		goto out_release_mem;
 
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_HPB)
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 copy_buffer:
-#endif
 	if (opcode == UPIU_QUERY_OPCODE_READ_DESC) {
 		err = copy_to_user(buffer, ioctl_data,
 				   sizeof(struct ufs_ioctl_query_data_hpb));
@@ -463,16 +596,198 @@ out:
 	return err;
 }
 
+inline int ufsf_get_scsi_device(struct ufs_hba *hba, struct scsi_device *sdev)
+{
+	unsigned long flags;
+	int ret;
+
+	spin_lock_irqsave(hba->host->host_lock, flags);
+	ret = scsi_device_get(sdev);
+	if (!ret && !scsi_device_online(sdev)) {
+		spin_unlock_irqrestore(hba->host->host_lock, flags);
+		scsi_device_put(sdev);
+		ERR_MSG("scsi_device_get failed.(%d)", ret);
+		return -ENODEV;
+	}
+	spin_unlock_irqrestore(hba->host->host_lock, flags);
+
+	return ret;
+}
+
 inline bool ufsf_is_valid_lun(int lun)
 {
 	return lun < UFS_UPIU_MAX_GENERAL_LUN;
 }
 
-inline int ufsf_get_ee_status(struct ufs_hba *hba, u32 *status)
+inline void ufsf_slave_configure(struct ufsf_feature *ufsf,
+				 struct scsi_device *sdev)
 {
-	return ufsf_query_attr_retry(hba, UPIU_QUERY_OPCODE_READ_ATTR,
-				     QUERY_ATTR_IDN_EE_STATUS, 0, status);
+	if (ufsf_is_valid_lun(sdev->lun)) {
+		ufsf->sdev_ufs_lu[sdev->lun] = sdev;
+		ufsf->slave_conf_cnt++;
+		INFO_MSG("lun[%d] sdev(%p) q(%p) slave_conf_cnt(%d/%d)",
+			 (int)sdev->lun, sdev, sdev->request_queue,
+			 ufsf->slave_conf_cnt, ufsf->num_lu);
+
+#if defined(CONFIG_UFSHPB)
+		if (ufsf->num_lu == ufsf->slave_conf_cnt) {
+			if (ufshpb_get_state(ufsf) == HPB_NEED_INIT) {
+				INFO_MSG("wakeup ufshpb_init_handler");
+				wake_up(&ufsf->hpb_wait);
+			}
+		}
+#endif
+	}
 }
+
+inline void ufsf_change_read10_debug_lun(struct ufsf_feature *ufsf,
+					 struct ufshcd_lrb *lrbp)
+{
+	int ctx_lba = LI_EN_32(lrbp->cmd->cmnd + 2);
+
+	if (ufsf->issue_read10_debug == true && ctx_lba == READ10_DEBUG_LBA) {
+		lrbp->lun = READ10_DEBUG_LUN;
+		INFO_MSG("lun 0x%X lba 0x%X", lrbp->lun, ctx_lba);
+	}
+}
+
+
+inline void ufsf_prep_fn(struct ufsf_feature *ufsf,
+			 struct ufshcd_lrb *lrbp)
+{
+#if defined(CONFIG_UFSHPB)
+	if (ufshpb_get_state(ufsf) == HPB_PRESENT &&
+	    ufsf->issue_read10_debug == false)
+		ufshpb_prep_fn(ufsf, lrbp);
+#endif
+
+#if defined(CONFIG_UFSTW)
+	if (ufstw_get_state(ufsf) == TW_PRESENT)
+		ufstw_prep_fn(ufsf, lrbp);
+#endif
+}
+
+inline void ufsf_reset_lu(struct ufsf_feature *ufsf)
+{
+#if defined(CONFIG_UFSTW)
+	INFO_MSG("run reset_lu.. tw_state(%d) -> TW_RESET",
+		 ufstw_get_state(ufsf));
+	ufstw_set_state(ufsf, TW_RESET);
+	ufstw_reset(ufsf, false);
+#endif
+}
+
+inline void ufsf_reset_host(struct ufsf_feature *ufsf)
+{
+#if defined(CONFIG_UFSHPB)
+	INFO_MSG("run reset_host.. hpb_state(%d) -> HPB_RESET",
+		 ufshpb_get_state(ufsf));
+	if (ufshpb_get_state(ufsf) == HPB_PRESENT)
+		ufshpb_reset_host(ufsf);
+#endif
+
+#if defined(CONFIG_UFSTW)
+	INFO_MSG("run reset_host.. tw_state(%d) -> TW_RESET",
+		 ufstw_get_state(ufsf));
+	if (ufstw_get_state(ufsf) == TW_PRESENT)
+		ufstw_reset_host(ufsf);
+#endif
+}
+
+inline void ufsf_init(struct ufsf_feature *ufsf)
+{
+#if defined(CONFIG_UFSHPB)
+	if (ufshpb_get_state(ufsf) == HPB_NEED_INIT) {
+		INFO_MSG("init start.. hpb_state (%d)", HPB_NEED_INIT);
+		schedule_work(&ufsf->hpb_init_work);
+	}
+#endif
+
+#if defined(CONFIG_UFSTW)
+	if (ufstw_get_state(ufsf) == TW_NEED_INIT)
+		ufstw_init(ufsf);
+#endif
+}
+
+inline void ufsf_reset(struct ufsf_feature *ufsf)
+{
+#if defined(CONFIG_UFSHPB)
+	if (ufshpb_get_state(ufsf) == HPB_RESET) {
+		INFO_MSG("reset start.. hpb_state %d", HPB_RESET);
+		ufshpb_reset(ufsf);
+	}
+#endif
+
+#if defined(CONFIG_UFSTW)
+	if (ufstw_get_state(ufsf) == TW_RESET &&
+	    !ufsf->hba->pm_op_in_progress) {
+		INFO_MSG("reset start.. tw_state %d",
+			 ufstw_get_state(ufsf));
+		ufstw_reset(ufsf, false);
+	}
+#endif
+}
+
+inline void ufsf_remove(struct ufsf_feature *ufsf)
+{
+#if defined(CONFIG_UFSHPB)
+	if (ufshpb_get_state(ufsf) == HPB_PRESENT)
+		ufshpb_remove(ufsf, HPB_NEED_INIT);
+#endif
+
+#if defined(CONFIG_UFSTW)
+	if (ufstw_get_state(ufsf) == TW_PRESENT)
+		ufstw_remove(ufsf);
+#endif
+}
+
+inline void ufsf_set_init_state(struct ufsf_feature *ufsf)
+{
+	ufsf->slave_conf_cnt = 0;
+	ufsf->issue_read10_debug = false;
+#if defined(CONFIG_UFSHPB)
+	ufshpb_set_state(ufsf, HPB_NEED_INIT);
+	INIT_WORK(&ufsf->hpb_init_work, ufshpb_init_handler);
+	init_waitqueue_head(&ufsf->hpb_wait);
+#endif
+
+#if defined(CONFIG_UFSW)
+	ufstw_set_state(ufsf, TW_NEED_INIT);
+#endif
+}
+
+inline void ufsf_suspend(struct ufsf_feature *ufsf)
+{
+#if defined(CONFIG_UFSHPB)
+	/*
+	 * if suspend failed, pm could call the suspend function again,
+	 * in this case, ufshpb state already had been changed to SUSPEND state.
+	 * so, we will not call ufshpb_suspend.
+	 */
+	if (ufshpb_get_state(ufsf) == HPB_PRESENT)
+		ufshpb_suspend(ufsf);
+#endif
+}
+
+inline void ufsf_resume(struct ufsf_feature *ufsf)
+{
+#if defined(CONFIG_UFSHPB)
+	if (ufshpb_get_state(ufsf) == HPB_SUSPEND ||
+	    ufshpb_get_state(ufsf) == HPB_PRESENT) {
+		if (ufshpb_get_state(ufsf) == HPB_PRESENT)
+			WARN_MSG("warning.. hpb state PRESENT in resuming");
+		ufshpb_resume(ufsf);
+	}
+#endif
+
+#if defined(CONFIG_UFSTW)
+	if (ufstw_get_state(ufsf) == HPB_RESET)
+		ufstw_reset(ufsf, true);
+#endif
+}
+
+inline void ufsf_on_idle(struct ufsf_feature *ufsf, bool scsi_req)
+{}
 
 /*
  * Wrapper functions for ufshpb.
@@ -481,14 +796,14 @@ inline int ufsf_get_ee_status(struct ufs_hba *hba, u32 *status)
 inline int ufsf_hpb_prepare_pre_req(struct ufsf_feature *ufsf,
 				    struct scsi_cmnd *cmd, int lun)
 {
-	if (ufsf->ufshpb_state == HPB_PRESENT)
+	if (ufshpb_get_state(ufsf) == HPB_PRESENT)
 		return ufshpb_prepare_pre_req(ufsf, cmd, lun);
 	return -ENODEV;
 }
 
 inline int ufsf_hpb_prepare_add_lrbp(struct ufsf_feature *ufsf, int add_tag)
 {
-	if (ufsf->ufshpb_state == HPB_PRESENT)
+	if (ufshpb_get_state(ufsf) == HPB_PRESENT)
 		return ufshpb_prepare_add_lrbp(ufsf, add_tag);
 	return -ENODEV;
 }
@@ -499,81 +814,12 @@ inline void ufsf_hpb_end_pre_req(struct ufsf_feature *ufsf,
 	ufshpb_end_pre_req(ufsf, req);
 }
 
-inline void ufsf_hpb_change_lun(struct ufsf_feature *ufsf,
-				struct ufshcd_lrb *lrbp)
-{
-	int ctx_lba = LI_EN_32(lrbp->cmd->cmnd + 2);
-
-	if (ufsf->ufshpb_state == HPB_PRESENT &&
-	    ufsf->issue_ioctl == true && ctx_lba == READ10_DEBUG_LBA) {
-		lrbp->lun = READ10_DEBUG_LUN;
-		INFO_MSG("lun 0x%X lba 0x%X", lrbp->lun, ctx_lba);
-	}
-}
-
-inline void ufsf_hpb_prep_fn(struct ufsf_feature *ufsf,
-			     struct ufshcd_lrb *lrbp)
-{
-	if (ufsf->ufshpb_state == HPB_PRESENT
-	    && ufsf->issue_ioctl == false)
-		ufshpb_prep_fn(ufsf, lrbp);
-}
-
 inline void ufsf_hpb_noti_rb(struct ufsf_feature *ufsf, struct ufshcd_lrb *lrbp)
 {
-	if (ufsf->ufshpb_state == HPB_PRESENT)
+	if (ufshpb_get_state(ufsf) == HPB_PRESENT)
 		ufshpb_rsp_upiu(ufsf, lrbp);
 }
 
-inline void ufsf_hpb_reset_lu(struct ufsf_feature *ufsf)
-{
-	ufsf->ufshpb_state = HPB_RESET;
-	schedule_work(&ufsf->ufshpb_reset_work);
-}
-
-inline void ufsf_hpb_reset_host(struct ufsf_feature *ufsf)
-{
-	if (ufsf->ufshpb_state == HPB_PRESENT)
-		ufsf->ufshpb_state = HPB_RESET;
-}
-
-inline void ufsf_hpb_init(struct ufsf_feature *ufsf)
-{
-	if (ufsf->hpb_dev_info.hpb_device &&
-	    ufsf->ufshpb_state == HPB_NEED_INIT) {
-		INIT_WORK(&ufsf->ufshpb_init_work, ufshpb_init_handler);
-		schedule_work(&ufsf->ufshpb_init_work);
-	}
-}
-
-inline void ufsf_hpb_reset(struct ufsf_feature *ufsf)
-{
-	if (ufsf->hpb_dev_info.hpb_device &&
-	    ufsf->ufshpb_state == HPB_RESET)
-		schedule_work(&ufsf->ufshpb_reset_work);
-}
-
-inline void ufsf_hpb_suspend(struct ufsf_feature *ufsf)
-{
-	if (ufsf->ufshpb_state == HPB_PRESENT)
-		ufshpb_suspend(ufsf);
-}
-
-inline void ufsf_hpb_resume(struct ufsf_feature *ufsf)
-{
-	if (ufsf->ufshpb_state == HPB_PRESENT)
-		ufshpb_resume(ufsf);
-}
-
-inline void ufsf_hpb_release(struct ufsf_feature *ufsf)
-{
-	ufshpb_release(ufsf, HPB_NEED_INIT);
-}
-
-inline void ufsf_hpb_set_init_state(struct ufsf_feature *ufsf)
-{
-	ufsf->ufshpb_state = HPB_NEED_INIT;
-}
 #else
 inline int ufsf_hpb_prepare_pre_req(struct ufsf_feature *ufsf,
 				    struct scsi_cmnd *cmd, int lun)
@@ -588,12 +834,9 @@ inline int ufsf_hpb_prepare_add_lrbp(struct ufsf_feature *ufsf, int add_tag)
 
 inline void ufsf_hpb_end_pre_req(struct ufsf_feature *ufsf,
 				 struct request *req) {}
-inline void ufsf_hpb_change_lun(struct ufsf_feature *ufsf,
-				struct ufshcd_lrb *lrbp) {}
-inline void ufsf_hpb_prep_fn(struct ufsf_feature *ufsf,
-			     struct ufshcd_lrb *lrbp) {}
 inline void ufsf_hpb_noti_rb(struct ufsf_feature *ufsf,
 			     struct ufshcd_lrb *lrbp) {}
+<<<<<<< HEAD
 inline void ufsf_hpb_reset_lu(struct ufsf_feature *ufsf) {}
 inline void ufsf_hpb_reset_host(struct ufsf_feature *ufsf) {}
 inline void ufsf_hpb_init(struct ufsf_feature *ufsf) {}
@@ -710,4 +953,6 @@ inline void ufsf_tw_set_init_state(struct ufsf_feature *ufsf) {}
 inline void ufsf_tw_reset_lu(struct ufsf_feature *ufsf) {}
 inline void ufsf_tw_reset_host(struct ufsf_feature *ufsf) {}
 inline void ufsf_tw_ee_handler(struct ufsf_feature *ufsf) {}
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif

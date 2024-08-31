@@ -40,6 +40,7 @@
 #include <linux/types.h>
 #include <uapi/scsi/scsi_bsg_ufs.h>
 
+#define MAX_QUERY_IDN	0x12
 #define MAX_CDB_SIZE	16
 #define GENERAL_UPIU_REQUEST_SIZE (sizeof(struct utp_upiu_req))
 #define QUERY_DESC_MAX_SIZE       255
@@ -182,7 +183,11 @@ enum attr_idn {
 	QUERY_ATTR_IDN_TW_FLUSH_STATUS		= 0x1C,
 	QUERY_ATTR_IDN_TW_BUF_SIZE		= 0x1D,
 	QUERY_ATTR_IDN_TW_BUF_LIFETIME_EST	= 0x1E,
-	QUERY_ATTR_CUR_TW_BUF_SIZE		= 0x1F,
+	QUERY_ATTR_IDN_TW_CURR_BUF_SIZE		= 0x1F,
+#endif
+#if defined(CONFIG_UFSHID)
+	QUERY_ATTR_IDN_HID_OPERATION		= 0x20,
+	QUERY_ATTR_IDN_HID_FRAG_LEVEL		= 0x21,
 #endif
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 	QUERY_ATTR_IDN_SUP_VENDOR_OPTIONS	= 0xFF,
@@ -292,10 +297,19 @@ enum device_desc_param {
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 	DEVICE_DESC_PARAM_EX_FEAT_SUP		= 0x4F,
 #endif
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_TW)
 	DEVICE_DESC_PARAM_TW_RETURN_TO_USER = 0x53,
+=======
+#if defined(CONFIG_UFSTW)
+	DEVICE_DESC_PARAM_TW_VER		= 0x4D,
+	DEVICE_DESC_PARAM_TW_RETURN_TO_USER	= 0x53,
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	DEVICE_DESC_PARAM_TW_BUF_TYPE		= 0x54,
-	DEVICE_DESC_PARAM_NUM_SHARED_WB_BUF_AU	= 0x55, /* JEDEC version */
+	DEVICE_DESC_PARAM_TW_SHARED_BUF_ALLOC_UNITS	= 0x55,
+#endif
+#if defined(CONFIG_UFSHID)
+	DEVICE_DESC_PARAM_HID_VER		= 0x59,
 #endif
 };
 
@@ -347,13 +361,17 @@ enum geometry_desc_param {
 	GEOMETRY_DESC_HPB_SUBREGION_SIZE		= 0x4A,
 	GEOMETRY_DESC_HPB_DEVICE_MAX_ACTIVE_REGIONS	= 0x4B,
 #endif
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_TW)
+=======
+#if defined(CONFIG_UFSTW)
+	GEOMETRY_DESC_TW_GROUP_NUM_CAP			= 0x4E,
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	GEOMETRY_DESC_TW_MAX_SIZE			= 0x4F,
 	GEOMETRY_DESC_TW_NUMBER_LU			= 0x53,
 	GEOMETRY_DESC_TW_CAP_ADJ_FAC			= 0x54,
 	GEOMETRY_DESC_TW_SUPPORT_USER_REDUCTION_TYPES	= 0x55,
 	GEOMETRY_DESC_TW_SUPPORT_BUF_TYPE		= 0x56,
-	GEOMETRY_DESC_TW_GROUP_NUM_CAP			= 0x57,
 #endif
 };
 
@@ -441,6 +459,7 @@ enum query_opcode {
 	UPIU_QUERY_OPCODE_SET_FLAG	= 0x6,
 	UPIU_QUERY_OPCODE_CLEAR_FLAG	= 0x7,
 	UPIU_QUERY_OPCODE_TOGGLE_FLAG	= 0x8,
+	UPIU_QUERY_OPCODE_MAX,
 };
 
 /* bRefClkFreq attribute values */
@@ -477,6 +496,7 @@ enum {
 	UPIU_COMMAND_SET_TYPE_SCSI	= 0x0,
 	UPIU_COMMAND_SET_TYPE_UFS	= 0x1,
 	UPIU_COMMAND_SET_TYPE_QUERY	= 0x2,
+	UPIU_COMMAND_SET_TYPE_VENDOR_HY	= 0xB,
 };
 
 /* UTP Transfer Request Command Offset */

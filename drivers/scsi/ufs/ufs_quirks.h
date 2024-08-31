@@ -96,6 +96,7 @@ struct ufs_dev_fix {
 #define UFS_DEVICE_QUIRK_HOST_PA_SAVECONFIGTIME	(1 << 8)
 
 /*
+<<<<<<< HEAD
  * Some UFS devices require VS_DebugSaveConfigTime is 0x10,
  * enabling this quirk ensure this.
  */
@@ -107,6 +108,15 @@ struct ufs_dev_fix {
  * suspend flow.
  */
 #define UFS_DEVICE_QUIRK_DELAY_AFTER_LPM        (1 << 11)
+=======
+ * Few samsung UFS device models advertise PA_HIBERN8TIME as
+ * 200us during handshaking in link establishment b/w host and device but
+ * which may not be enough for the UFS device.
+ * To workaround this issue, host should set its PA_HIBERN8TIME time to
+ * 300us even if device advertises PA_HIBERN8TIME of 200us.
+ */
+#define UFS_DEVICE_QUIRK_PA_HIBER8TIME (1 << 12)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 /*
  * MTK PATCH

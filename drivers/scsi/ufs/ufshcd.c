@@ -62,6 +62,11 @@
 				 UFSHCD_ERROR_MASK)
 /* UIC command timeout, unit: ms */
 #define UIC_CMD_TIMEOUT	500
+<<<<<<< HEAD
+=======
+#endif
+#define MI_UIC_CMD_TIMEOUT 3000
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 /* NOP OUT retries waiting for NOP IN response */
 #define NOP_OUT_RETRIES    10
@@ -183,6 +188,14 @@ struct ufs_pm_lvl_states ufs_pm_lvl_states[] = {
 	{UFS_POWERDOWN_PWR_MODE, UIC_LINK_OFF_STATE},
 };
 
+<<<<<<< HEAD
+=======
+#define DID_FATAL 0xFF
+
+/* MTK PATCH: For reference of ufs_pm_lvl_states array size from outside */
+const int ufs_pm_lvl_states_size = ARRAY_SIZE(ufs_pm_lvl_states);
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 static inline enum ufs_dev_pwr_mode
 ufs_get_pm_lvl_to_dev_pwr_mode(enum ufs_pm_level lvl)
 {
@@ -307,6 +320,34 @@ static int ufshcd_scale_clks(struct ufs_hba *hba, bool scale_up);
 static irqreturn_t ufshcd_intr(int irq, void *__hba);
 static int ufshcd_change_power_mode(struct ufs_hba *hba,
 			     struct ufs_pa_layer_attr *pwr_mode);
+
+static void ufshcd_update_uic_error_cnt(struct ufs_hba *hba, u32 reg, int type)
+{
+	unsigned long err_bits;
+	int ec;
+
+	switch (type) {
+	case UFS_UIC_ERROR_PA:
+		err_bits = reg & UIC_PHY_ADAPTER_LAYER_ERROR_CODE_MASK;
+		for_each_set_bit(ec, &err_bits, UFS_EC_PA_MAX) {
+			hba->ufs_stats.pa_err_cnt[ec]++;
+			hba->ufs_stats.pa_err_cnt_total++;
+		}
+		break;
+	case UFS_UIC_ERROR_DL:
+		err_bits = reg & UIC_DATA_LINK_LAYER_ERROR_CODE_MASK;
+		for_each_set_bit(ec, &err_bits, UFS_EC_DL_MAX) {
+			hba->ufs_stats.dl_err_cnt[ec]++;
+			hba->ufs_stats.dl_err_cnt_total++;
+		}
+		break;
+	case UFS_UIC_ERROR_DME:
+		hba->ufs_stats.dme_err_cnt++;
+	default:
+		break;
+	}
+}
+
 static inline bool ufshcd_valid_tag(struct ufs_hba *hba, int tag)
 {
 	return tag >= 0 && tag < hba->nutrs;
@@ -328,13 +369,22 @@ static inline void ufshcd_disable_irq(struct ufs_hba *hba)
 	}
 }
 
+
+#if defined(CONFIG_UFSFEATURE)
+void ufshcd_scsi_unblock_requests(struct ufs_hba *hba)
+#else
 static void ufshcd_scsi_unblock_requests(struct ufs_hba *hba)
+#endif
 {
 	if (atomic_dec_and_test(&hba->scsi_block_reqs_cnt))
 		scsi_unblock_requests(hba->host);
 }
 
+#if defined(CONFIG_UFSFEATURE)
+void ufshcd_scsi_block_requests(struct ufs_hba *hba)
+#else
 static void ufshcd_scsi_block_requests(struct ufs_hba *hba)
+#endif
 {
 	if (atomic_inc_return(&hba->scsi_block_reqs_cnt) == 1)
 		scsi_block_requests(hba->host);
@@ -1148,8 +1198,13 @@ static bool ufshcd_is_devfreq_scaling_required(struct ufs_hba *hba,
 	return false;
 }
 
+#if defined(CONFIG_UFSFEATURE)
+int ufshcd_wait_for_doorbell_clr(struct ufs_hba *hba,
+					u64 wait_timeout_us)
+#else
 static int ufshcd_wait_for_doorbell_clr(struct ufs_hba *hba,
 					u64 wait_timeout_us)
+#endif
 {
 	unsigned long flags;
 	int ret = 0;
@@ -2077,6 +2132,15 @@ void ufshcd_send_command(struct ufs_hba *hba, unsigned int task_tag)
 	ufshcd_writel(hba, 1 << task_tag, REG_UTP_TRANSFER_REQ_DOOR_BELL);
 	/* Make sure that doorbell is committed immediately */
 	wmb();
+<<<<<<< HEAD
+=======
+
+
+	if (hba->lrb[task_tag].cmd)
+		ufshcd_cond_add_cmd_trace(hba, task_tag, UFS_TRACE_SEND);
+	else
+		ufshcd_cond_add_cmd_trace(hba, task_tag, UFS_TRACE_DEV_SEND);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 /**
@@ -2218,11 +2282,20 @@ ufshcd_wait_for_uic_cmd(struct ufs_hba *hba, struct uic_command *uic_cmd)
 	unsigned long flags;
 
 	if (wait_for_completion_timeout(&uic_cmd->done,
-					msecs_to_jiffies(UIC_CMD_TIMEOUT)))
+					msecs_to_jiffies(MI_UIC_CMD_TIMEOUT)))
 		ret = uic_cmd->argument2 & MASK_UIC_COMMAND_RESULT;
 	else
 		ret = -ETIMEDOUT;
+<<<<<<< HEAD
 
+=======
+#ifdef CONFIG_MTK_UFS_DEBUG
+		dev_err(hba->dev, "%s timeout!\n", __func__);
+#endif
+	}
+
+	ufshcd_dme_cmd_log(hba, uic_cmd, UFS_TRACE_UIC_CMPL_GENERAL);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	hba->active_uic_cmd = NULL;
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
@@ -2388,8 +2461,14 @@ static void ufshcd_disable_intr(struct ufs_hba *hba, u32 intrs)
  * @upiu_flags: flags required in the header
  * @cmd_dir: requests data direction
  */
+<<<<<<< HEAD
 static void ufshcd_prepare_req_desc_hdr(struct ufshcd_lrb *lrbp,
 			u32 *upiu_flags, enum dma_data_direction cmd_dir)
+=======
+static void ufshcd_prepare_req_desc_hdr(struct ufs_hba *hba,
+		struct ufshcd_lrb *lrbp,
+	u32 *upiu_flags, enum dma_data_direction cmd_dir)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	struct utp_transfer_req_desc *req_desc = lrbp->utr_descriptor_ptr;
 	u32 data_direction;
@@ -2405,8 +2484,11 @@ static void ufshcd_prepare_req_desc_hdr(struct ufshcd_lrb *lrbp,
 		data_direction = UTP_NO_DATA_TRANSFER;
 		*upiu_flags = UPIU_CMD_FLAGS_NONE;
 	}
-
-	dword_0 = data_direction | (lrbp->command_type
+	if (hba->ufs_version == UFSHCI_VERSION_31)
+		dword_0 = data_direction | (UTP_CMD_TYPE_UFS
+				<< UPIU_COMMAND_TYPE_OFFSET);
+	else
+		dword_0 = data_direction | (lrbp->command_type
 				<< UPIU_COMMAND_TYPE_OFFSET);
 	if (lrbp->intr_cmd)
 		dword_0 |= UTP_REQ_DESC_INT_CMD;
@@ -2455,7 +2537,8 @@ void ufshcd_prepare_utp_scsi_cmd_upiu(struct ufshcd_lrb *lrbp, u32 upiu_flags)
 				UPIU_TRANSACTION_COMMAND, upiu_flags,
 				lrbp->lun, lrbp->task_tag);
 	ucd_req_ptr->header.dword_1 = UPIU_HEADER_DWORD(
-				UPIU_COMMAND_SET_TYPE_SCSI, 0, 0, 0);
+				(lrbp->cmd->cmnd[0] == 0xd0 ? UPIU_COMMAND_SET_TYPE_VENDOR_HY : UPIU_COMMAND_SET_TYPE_SCSI),
+				0, 0, 0);
 
 	/* Total EHS length and Data segment length will be zero */
 	ucd_req_ptr->header.dword_2 = 0;
@@ -2543,7 +2626,7 @@ static int ufshcd_comp_devman_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 	else
 		lrbp->command_type = UTP_CMD_TYPE_UFS_STORAGE;
 
-	ufshcd_prepare_req_desc_hdr(lrbp, &upiu_flags, DMA_NONE);
+	ufshcd_prepare_req_desc_hdr(hba, lrbp, &upiu_flags, DMA_NONE);
 	if (hba->dev_cmd.type == DEV_CMD_TYPE_QUERY)
 		ufshcd_prepare_utp_query_req_upiu(hba, lrbp, upiu_flags);
 	else if (hba->dev_cmd.type == DEV_CMD_TYPE_NOP)
@@ -2576,7 +2659,12 @@ static int ufshcd_comp_devman_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 	else
 		lrbp->command_type = UTP_CMD_TYPE_UFS_STORAGE;
 
+	/*only for hynix HR*/
+	if (lrbp->cmd->cmnd[0] == 0xd0)
+		lrbp->command_type = UTP_CMD_TYPE_SCSI_VENDOR_HY;
+
 	if (likely(lrbp->cmd)) {
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 		if (hba->dev_info.wmanufacturerid != UFS_VENDOR_SKHYNIX)
 			ufsf_hpb_change_lun(&hba->ufsf, lrbp);
@@ -2584,6 +2672,13 @@ static int ufshcd_comp_devman_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 		if (hba->dev_info.wmanufacturerid != UFS_VENDOR_SKHYNIX)
 			ufsf_hpb_prep_fn(&hba->ufsf, lrbp);
 #endif
+=======
+#if defined(CONFIG_UFSFEATURE)
+		ufsf_change_read10_debug_lun(&hba->ufsf, lrbp);
+		ufsf_prep_fn(&hba->ufsf, lrbp);
+#endif
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #if defined(CONFIG_SCSI_SKHPB)
 	if (hba->dev_info.wmanufacturerid == UFS_VENDOR_SKHYNIX) {
 		if (hba->skhpb_state == SKHPB_PRESENT && hba->issue_ioctl == false) {
@@ -2591,9 +2686,15 @@ static int ufshcd_comp_devman_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 		}
 	}
 #endif
+<<<<<<< HEAD
 	ufshcd_prepare_req_desc_hdr(lrbp, &upiu_flags,
 								lrbp->cmd->sc_data_direction);
 	ufshcd_prepare_utp_scsi_cmd_upiu(lrbp, upiu_flags);
+=======
+		ufshcd_prepare_req_desc_hdr(hba, lrbp, &upiu_flags,
+						lrbp->cmd->sc_data_direction);
+		ufshcd_prepare_utp_scsi_cmd_upiu(lrbp, upiu_flags);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	} else {
 		ret = -EINVAL;
 	}
@@ -2791,7 +2892,7 @@ send_orig_cmd:
 		ufshcd_send_command(hba, add_tag);
 		req_sent = true;
 		pre_req_err = -EBUSY;
-		atomic64_inc(&hba->ufsf.ufshpb_lup[add_lrbp->lun]->pre_req_cnt);
+		atomic64_inc(&hba->ufsf.hpb_lup[add_lrbp->lun]->pre_req_cnt);
 	}
 #endif
 
@@ -3467,11 +3568,19 @@ EXPORT_SYMBOL(ufshcd_map_desc_id_to_length);
  * Return 0 in case of success, non-zero otherwise
  */
 int ufshcd_read_desc_param(struct ufs_hba *hba,
+<<<<<<< HEAD
 			   enum desc_idn desc_id,
 			   int desc_index,
 			   u8 param_offset,
 			   u8 *param_read_buf,
 			   u8 param_size)
+=======
+				  enum desc_idn desc_id,
+				  int desc_index,
+				  u8 param_offset,
+				  u8 *param_read_buf,
+				  u8 param_size)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	int ret;
 	u8 *desc_buf;
@@ -3572,6 +3681,28 @@ struct uc_string_id {
 /* replace non-printable or non-ASCII characters with spaces */
 static inline char ufshcd_remove_non_printable(u8 ch)
 {
+<<<<<<< HEAD
+=======
+		return ufshcd_read_desc(hba, QUERY_DESC_IDN_HEALTH, 0, buf, size);
+	}
+
+	/**
+	 * struct uc_string_id - unicode string
+	 *
+	 * @len: size of this descriptor inclusive
+	 * @type: descriptor type
+	 * @uc: unicode string character
+	 */
+	struct uc_string_id {
+		u8 len;
+		u8 type;
+		wchar_t uc[0];
+	} __packed;
+
+	/* replace non-printable or non-ASCII characters with spaces */
+static inline char ufshcd_remove_non_printable_mi(u8 ch)
+{
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return (ch >= 0x20 && ch <= 0x7e) ? ch : ' ';
 }
 
@@ -3589,6 +3720,7 @@ static inline char ufshcd_remove_non_printable(u8 ch)
  * *      -ENOMEM: on allocation failure
  * *      -EINVAL: on a wrong parameter
  */
+<<<<<<< HEAD
 int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
 			    u8 **buf, bool ascii)
 {
@@ -3598,6 +3730,25 @@ int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
 
 	if (!buf)
 		return -EINVAL;
+=======
+#define ASCII_STD true
+int ufshcd_read_string_desc(struct ufs_hba *hba, int desc_index,
+				   u8 *buf, u32 size, bool ascii)
+{
+	struct uc_string_id *uc_str;
+	u8 *str;
+	int ret,err=0;
+
+	if (!buf)
+		return -EINVAL;
+
+	uc_str = kzalloc(QUERY_DESC_MAX_SIZE, GFP_KERNEL);
+	if (!uc_str)
+		return -ENOMEM;
+
+	err = ufshcd_read_desc(hba,
+				QUERY_DESC_IDN_STRING, desc_index, (u8 *)uc_str, size);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	uc_str = kzalloc(QUERY_DESC_MAX_SIZE, GFP_KERNEL);
 	if (!uc_str)
@@ -3619,6 +3770,13 @@ int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
 		ret = 0;
 		goto out;
 	}
+	if (uc_str->len <= QUERY_DESC_HDR_SIZE) {
+		dev_dbg(hba->dev, "String Desc is of zero length\n");
+		str = NULL;
+		ret = 0;
+		goto out;
+	}
+
 
 	if (ascii) {
 		ssize_t ascii_len;
@@ -3641,7 +3799,11 @@ int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
 
 		/* replace non-printable or non-ASCII characters with spaces */
 		for (i = 0; i < ret; i++)
+<<<<<<< HEAD
 			str[i] = ufshcd_remove_non_printable(str[i]);
+=======
+			str[i] = ufshcd_remove_non_printable_mi(str[i]);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 		str[ret++] = '\0';
 
@@ -3654,9 +3816,18 @@ int ufshcd_read_string_desc(struct ufs_hba *hba, u8 desc_index,
 		ret = uc_str->len;
 	}
 out:
+<<<<<<< HEAD
 	*buf = str;
 	kfree(uc_str);
 	return ret;
+=======
+	if (str) {
+		memset(buf,0,sizeof(buf));
+		memcpy(buf, str, ret);
+	}
+	kfree(uc_str);
+	return err;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 /**
@@ -4085,7 +4256,7 @@ static int ufshcd_uic_pwr_ctrl(struct ufs_hba *hba, struct uic_command *cmd)
 	}
 
 	if (!wait_for_completion_timeout(hba->uic_async_done,
-					 msecs_to_jiffies(UIC_CMD_TIMEOUT))) {
+					 msecs_to_jiffies(MI_UIC_CMD_TIMEOUT))) {
 		dev_err(hba->dev,
 			"pwr ctrl cmd 0x%x with mode 0x%x completion timeout\n",
 			cmd->command, cmd->argument3);
@@ -4456,6 +4627,7 @@ static int ufshcd_change_power_mode(struct ufs_hba *hba,
 
 		memcpy(&hba->pwr_info, pwr_mode,
 			sizeof(struct ufs_pa_layer_attr));
+		hba->ufs_stats.power_mode_change_cnt++;
 	}
 
 	return ret;
@@ -4979,6 +5151,7 @@ static int ufshcd_slave_configure(struct scsi_device *sdev)
 {
 	struct ufs_hba *hba = shost_priv(sdev->host);
 	struct request_queue *q = sdev->request_queue;
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 	struct ufsf_feature *ufsf = &hba->ufsf;
 
@@ -4986,6 +5159,10 @@ static int ufshcd_slave_configure(struct scsi_device *sdev)
 		ufsf->sdev_ufs_lu[sdev->lun] = sdev;
 		ufsf->slave_conf_cnt++;
 	}
+=======
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_slave_configure(&hba->ufsf, sdev);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 	blk_queue_update_dma_pad(q, PRDT_DATA_BYTE_COUNT_PAD - 1);
 	blk_queue_max_segment_size(q, PRDT_DATA_BYTE_COUNT_MAX);
@@ -5171,6 +5348,7 @@ ufshcd_transfer_rsp_status(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 
 	if ((host_byte(result) != DID_OK) && !hba->silence_err_logs)
 		ufshcd_print_trs(hba, 1 << lrbp->task_tag, true);
+
 	return result;
 }
 
@@ -5220,6 +5398,7 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
 	int result;
 	int index;
 	u32 ocs_err_status;
+<<<<<<< HEAD
 
 	ocs_err_status = ufshcd_readl(hba, REG_UFS_MTK_OCS_ERR_STATUS);
 	if (ocs_err_status & 0xC0000000) {
@@ -5228,6 +5407,12 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
 		ufshcd_update_evt_hist(hba, UFS_EVT_OCS_ERR,
 				       ocs_err_status);
 	}
+=======
+	/* MTK PATCH: for completion notification feature */
+#if defined(CONFIG_UFSFEATURE)
+	bool scsi_req = false;
+#endif
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	for_each_set_bit(index, &completed_reqs, hba->nutrs) {
 		lrbp = &hba->lrb[index];
@@ -5247,6 +5432,9 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
 			clear_bit_unlock(index, &hba->lrb_in_use);
 			/* Do not touch lrbp after scsi done */
 			cmd->scsi_done(cmd);
+#if defined(CONFIG_UFSFEATURE)
+			scsi_req = true;
+#endif
 			__ufshcd_release(hba);
 		} else if (lrbp->command_type == UTP_CMD_TYPE_DEV_MANAGE ||
 			lrbp->command_type == UTP_CMD_TYPE_UFS_STORAGE) {
@@ -5267,6 +5455,13 @@ static void __ufshcd_transfer_req_compl(struct ufs_hba *hba,
 
 	/* we might have free'd some tags above */
 	wake_up(&hba->dev_cmd.tag_wq);
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_on_idle(&hba->ufsf, scsi_req);
+#endif
+	return 0;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 /**
@@ -5599,9 +5794,12 @@ static void ufshcd_exception_event_handler(struct work_struct *work)
 
 	if (status & MASK_EE_URGENT_BKOPS)
 		ufshcd_bkops_exception_event_handler(hba);
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 	ufsf_tw_ee_handler(&hba->ufsf);
 #endif
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 out:
 	ufshcd_scsi_unblock_requests(hba);
 	/*
@@ -5801,6 +5999,24 @@ skip_pending_xfer_clear:
 					__func__);
 			hba->ufshcd_state = UFSHCD_STATE_ERROR;
 		}
+		/* Check again if need reset host */
+		if (!err && hba->invalid_resp_upiu) {
+			spin_unlock_irqrestore(hba->host->host_lock, flags);
+
+			ufs_mtk_pltfrm_host_sw_rst(hba, SW_RST_TARGET_UFSHCI);
+			ufshcd_hba_enable(hba);
+			err = ufshcd_dme_set(hba,
+				UIC_ARG_MIB_SEL(VENDOR_UNIPROPOWERDOWNCONTROL,
+				0), 0);
+			if (err)
+				dev_info(hba->dev, "ir_hdlr: failed to clr unipro pdn ctrl\n");
+			ufshcd_set_link_active(hba);
+			ufshcd_make_hba_operational(hba);
+
+			spin_lock_irqsave(hba->host->host_lock, flags);
+			hba->invalid_resp_upiu = false;
+		}
+
 		/*
 		 * Inform scsi mid-layer that we did reset and allow to handle
 		 * Unit Attention properly.
@@ -5849,7 +6065,12 @@ static irqreturn_t ufshcd_update_uic_error(struct ufs_hba *hba)
 		 * To know whether this error is fatal or not, DB timeout
 		 * must be checked but this error is handled separately.
 		 */
+<<<<<<< HEAD
 		dev_err(hba->dev, "%s: UIC Lane error reported\n", __func__);
+=======
+		dev_dbg(hba->dev, "%s: UIC Lane error reported\n", __func__);
+		ufshcd_update_uic_error_cnt(hba, reg, UFS_UIC_ERROR_PA);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		ufshcd_update_evt_hist(hba, UFS_EVT_PA_ERR, reg);
 		retval |= IRQ_HANDLED;
 	}
@@ -5859,6 +6080,7 @@ static irqreturn_t ufshcd_update_uic_error(struct ufs_hba *hba)
 	if ((reg & UIC_DATA_LINK_LAYER_ERROR) &&
 	    (reg & UIC_DATA_LINK_LAYER_ERROR_CODE_MASK)) {
 		ufshcd_update_evt_hist(hba, UFS_EVT_DL_ERR, reg);
+<<<<<<< HEAD
 
 		if (reg & UIC_DATA_LINK_LAYER_ERROR_PA_INIT)
 			hba->uic_error |= UFSHCD_UIC_DL_PA_INIT_ERROR;
@@ -5871,6 +6093,60 @@ static irqreturn_t ufshcd_update_uic_error(struct ufs_hba *hba)
 				hba->uic_error |= UFSHCD_UIC_DL_TCx_REPLAY_ERROR;
 		}
 		retval |= IRQ_HANDLED;
+=======
+#ifdef CONFIG_MTK_UFS_DEBUG
+	if (reg) {
+		/* MTK PATCH: dump ufs debug Info like XO_UFS/VEMC/VUFS18 */
+		ufshcd_update_uic_error_cnt(hba, reg, UFS_UIC_ERROR_DL);
+		ufs_mtk_pltfrm_gpio_trigger_and_debugInfo_dump(hba);
+		dev_err(hba->dev,
+			"Host UIC Error Code Data Link Layer: %08x\n", reg);
+		reg_ul = reg;
+		if (test_bit(0, &reg_ul))
+			dev_err(hba->dev, "NAC_RECEIVED\n");
+		if (test_bit(1, &reg_ul))
+			dev_err(hba->dev, "TCx_REPLAY_TIMER_EXPIRED\n");
+		if (test_bit(2, &reg_ul))
+			dev_err(hba->dev, "AFCx_REQUEST_TIMER_EXPIRED\n");
+		if (test_bit(3, &reg_ul))
+			dev_err(hba->dev, "FCx_PROTECTION_TIMER_EXPIRED\n");
+		if (test_bit(4, &reg_ul))
+			dev_err(hba->dev, "CRC_ERROR\n");
+		if (test_bit(5, &reg_ul))
+			dev_err(hba->dev, "RX_BUFFER_OVERFLOW\n");
+		if (test_bit(6, &reg_ul))
+			dev_err(hba->dev, "MAX_FRAME_LENGTH_EXCEEDEDn");
+		if (test_bit(7, &reg_ul))
+			dev_err(hba->dev, "WRONG_SEQUENCE_NUMBER\n");
+		if (test_bit(8, &reg_ul))
+			dev_err(hba->dev, "AFC_FRAME_SYNTAX_ERROR\n");
+		if (test_bit(9, &reg_ul))
+			dev_err(hba->dev, "NAC_FRAME_SYNTAX_ERROR\n");
+		if (test_bit(10, &reg_ul))
+			dev_err(hba->dev, "EOF_SYNTAX_ERROR\n");
+		if (test_bit(11, &reg_ul))
+			dev_err(hba->dev, "FRAME_SYNTAX_ERROR\n");
+		if (test_bit(12, &reg_ul))
+			dev_err(hba->dev, "BAD_CTRL_SYMBOL_TYPE\n");
+		if (test_bit(13, &reg_ul))
+			dev_err(hba->dev, "PA_INIT_ERROR (FATAL ERROR)\n");
+		if (test_bit(14, &reg_ul))
+			dev_err(hba->dev, "PA_ERROR_IND_RECEIVED\n");
+		if (test_bit(15, &reg_ul))
+			dev_err(hba->dev, "PA_INIT (3.0 FATAL ERROR)\n");
+	}
+#endif
+	if ((reg & UIC_DATA_LINK_LAYER_ERROR_PA_INIT_ERROR) ||
+		(reg & UIC_DATA_LINK_LAYER_ERROR_PA_INIT))
+		hba->uic_error |= UFSHCD_UIC_DL_PA_INIT_ERROR;
+	else if (hba->dev_quirks &
+		   UFS_DEVICE_QUIRK_RECOVERY_FROM_DL_NAC_ERRORS) {
+		if (reg & UIC_DATA_LINK_LAYER_ERROR_NAC_RECEIVED)
+			hba->uic_error |=
+				UFSHCD_UIC_DL_NAC_RECEIVED_ERROR;
+		else if (reg & UIC_DATA_LINK_LAYER_ERROR_TCx_REPLAY_TIMEOUT)
+			hba->uic_error |= UFSHCD_UIC_DL_TCx_REPLAY_ERROR;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 
 	/* UIC NL/TL/DME errors needs software retry */
@@ -5891,8 +6167,13 @@ static irqreturn_t ufshcd_update_uic_error(struct ufs_hba *hba)
 	}
 
 	reg = ufshcd_readl(hba, REG_UIC_ERROR_CODE_DME);
+<<<<<<< HEAD
 	if ((reg & UIC_DME_ERROR) &&
 	    (reg & UIC_DME_ERROR_CODE_MASK)) {
+=======
+	if (reg) {
+		ufshcd_update_uic_error_cnt(hba, reg, UFS_UIC_ERROR_DME);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		ufshcd_update_evt_hist(hba, UFS_EVT_DME_ERR, reg);
 		hba->uic_error |= UFSHCD_UIC_DME_ERROR;
 		retval |= IRQ_HANDLED;
@@ -6471,9 +6752,14 @@ out:
 	hba->req_abort_count = 0;
 	ufshcd_update_evt_hist(hba, UFS_EVT_DEV_RESET, (u32)err);
 	if (!err) {
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 		ufsf_hpb_reset_lu(&hba->ufsf);
 		ufsf_tw_reset_lu(&hba->ufsf);
+=======
+#if defined(CONFIG_UFSFEATURE)
+		ufsf_reset_lu(&hba->ufsf);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 #if defined(CONFIG_SCSI_SKHPB)
 		if (hba->dev_info.wmanufacturerid == UFS_VENDOR_SKHYNIX) {
@@ -6530,6 +6816,7 @@ static int ufshcd_abort(struct scsi_cmnd *cmd)
 	hba = shost_priv(host);
 	tag = cmd->request->tag;
 	lrbp = &hba->lrb[tag];
+
 	if (!ufshcd_valid_tag(hba, tag)) {
 		dev_err(hba->dev,
 			"%s: invalid command tag %d: cmd=0x%p, cmd->request=0x%p",
@@ -6699,16 +6986,22 @@ static int ufshcd_host_reset_and_restore(struct ufs_hba *hba)
 	int err;
 	unsigned long flags;
 
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_reset_host(&hba->ufsf);
+#endif
 	/*
 	 * Stop the host controller and complete the requests
 	 * cleared by h/w
 	 */
 	spin_lock_irqsave(hba->host->host_lock, flags);
 	ufshcd_hba_stop(hba, false);
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 	ufsf_hpb_reset_host(&hba->ufsf);
 	ufsf_tw_reset_host(&hba->ufsf);
 #endif
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	hba->silence_err_logs = true;
 	ufshcd_complete_requests(hba);
 	hba->silence_err_logs = false;
@@ -7142,6 +7435,11 @@ static int ufshcd_tune_pa_hibern8time(struct ufs_hba *hba)
 	int ret = 0;
 	u32 local_tx_hibern8_time_cap = 0, peer_rx_hibern8_time_cap = 0;
 	u32 max_hibern8_time, tuned_pa_hibern8time;
+	u32 pa_hibern8time_quirk_enabled = hba->dev_quirks & UFS_DEVICE_QUIRK_PA_HIBER8TIME;
+
+	if (!ufshcd_is_unipro_pa_params_tuning_req(hba) && !pa_hibern8time_quirk_enabled) {
+		return 0;
+	}
 
 	ret = ufshcd_dme_get(hba,
 			     UIC_ARG_MIB_SEL(TX_HIBERN8TIME_CAPABILITY,
@@ -7162,6 +7460,15 @@ static int ufshcd_tune_pa_hibern8time(struct ufs_hba *hba)
 	/* make sure proper unit conversion is applied */
 	tuned_pa_hibern8time = ((max_hibern8_time * HIBERN8TIME_UNIT_US)
 				/ PA_HIBERN8_TIME_UNIT_US);
+
+	/* PA_HIBERN8TIME is product of tuned_pa_hibern8time * granularity,
+	 * setting tuned_pa_hibern8time as 3 and since granularity is 100us
+	 * for both host and device side, 3 *100us = 300us is set as
+	 * PA_HIBERN8TIME if UFS_DEVICE_QUIRK_PA_HIBER8TIME quirk is enabled
+	 */
+	if (pa_hibern8time_quirk_enabled)
+		tuned_pa_hibern8time = 3; /* 3 *100us =300us */
+
 	ret = ufshcd_dme_set(hba, UIC_ARG_MIB(PA_HIBERN8TIME),
 			     tuned_pa_hibern8time);
 out:
@@ -7242,14 +7549,24 @@ static void ufshcd_tune_unipro_params(struct ufs_hba *hba)
 {
 	if (ufshcd_is_unipro_pa_params_tuning_req(hba)) {
 		ufshcd_tune_pa_tactivate(hba);
-		ufshcd_tune_pa_hibern8time(hba);
 	}
+<<<<<<< HEAD
 
 	ufshcd_vops_apply_dev_quirks(hba);
 
 	if (hba->dev_quirks & UFS_DEVICE_QUIRK_PA_TACTIVATE)
 		/* set 1ms timeout for PA_TACTIVATE */
 		ufshcd_dme_set(hba, UIC_ARG_MIB(PA_TACTIVATE), 10);
+=======
+	ufshcd_tune_pa_hibern8time(hba);
+	if (hba->dev_quirks & UFS_DEVICE_QUIRK_PA_TACTIVATE) {
+		/* set timeout for PA_TACTIVATE by vender */
+		if (hba->card->wmanufacturerid == UFS_VENDOR_SAMSUNG)
+			ufshcd_dme_set(hba, UIC_ARG_MIB(PA_TACTIVATE), 6);
+		else
+			ufshcd_dme_set(hba, UIC_ARG_MIB(PA_TACTIVATE), 10);
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	if (hba->dev_quirks & UFS_DEVICE_QUIRK_HOST_PA_TACTIVATE)
 		ufshcd_quirk_tune_host_pa_tactivate(hba);
@@ -7296,10 +7613,13 @@ static void ufshcd_init_desc_sizes(struct ufs_hba *hba)
 	if (err)
 		hba->desc_size.geom_desc = QUERY_DESC_GEOMETRY_DEF_SIZE;
 
+<<<<<<< HEAD
 	err = ufshcd_read_desc_length(hba, QUERY_DESC_IDN_HEALTH, 0,
 		&hba->desc_size.hlth_desc);
 	if (err)
 		hba->desc_size.hlth_desc = QUERY_DESC_HEALTH_DEF_SIZE;
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 static int ufshcd_device_geo_params_init(struct ufs_hba *hba)
@@ -7569,14 +7889,88 @@ static int ufshcd_probe_hba(struct ufs_hba *hba, bool async)
 	/* set the state as operational after switching to desired gear */
 	hba->ufshcd_state = UFSHCD_STATE_OPERATIONAL;
 
+<<<<<<< HEAD
 	/* Enable Auto-Hibernate if configured */
 	ufshcd_auto_hibern8_enable(hba);
+=======
+	/*
+	 * If we are in error handling context or in power management callbacks
+	 * context, no need to scan the host
+	 */
+	if (!ufshcd_eh_in_progress(hba) && !hba->pm_op_in_progress) {
+		bool flag;
+
+		/* clear any previous UFS device information */
+		memset(&hba->dev_info, 0, sizeof(hba->dev_info));
+		if (!ufshcd_query_flag_retry(hba, UPIU_QUERY_OPCODE_READ_FLAG,
+				QUERY_FLAG_IDN_PWR_ON_WPE, &flag))
+			hba->dev_info.f_power_on_wp_en = flag;
+
+		if (!hba->is_init_prefetch)
+			ufshcd_init_icc_levels(hba);
+
+		/* Add required well known logical units to scsi mid layer */
+		ret = ufshcd_scsi_add_wlus(hba);
+		if (ret)
+			goto out;
+
+		/* Initialize devfreq after UFS device is detected */
+		if (ufshcd_is_clkscaling_supported(hba)) {
+			memcpy(&hba->clk_scaling.saved_pwr_info.info,
+				&hba->pwr_info,
+				sizeof(struct ufs_pa_layer_attr));
+			hba->clk_scaling.saved_pwr_info.is_valid = true;
+			if (!hba->devfreq) {
+				hba->devfreq = devm_devfreq_add_device(hba->dev,
+							&ufs_devfreq_profile,
+							"simple_ondemand",
+							NULL);
+				if (IS_ERR(hba->devfreq)) {
+					ret = PTR_ERR(hba->devfreq);
+					dev_err(hba->dev, "Unable to register with devfreq %d\n",
+							ret);
+					goto out;
+				}
+			}
+			hba->clk_scaling.is_allowed = true;
+		}
+
+		scsi_scan_host(hba->host);
+#if defined(CONFIG_UFSFEATURE)
+		ufsf_device_check(hba);
+		ufsf_init(&hba->ufsf);
+#endif
+
+#if defined(CONFIG_SCSI_SKHPB)
+		if (hba->card->wmanufacturerid == UFS_VENDOR_SKHYNIX)
+			schedule_delayed_work(&hba->skhpb_init_work, 0);
+#endif
+		pm_runtime_put_sync(hba->dev);
+	}
+
+	if (!hba->is_init_prefetch)
+		hba->is_init_prefetch = true;
+
+	/*
+	 * MTK PATCH: Enable auto-hibern8 after successful host
+	 * (re-)initialization.
+	 *
+	 * For error handling case (ufshcd_host_reset_and_restore), auto-hibern8
+	 * shall be disabled by ufshcd_hba_stop and re-started here.
+	 */
+	ufshcd_vops_auto_hibern8(hba, true);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 out:
 
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 		ufsf_hpb_reset(&hba->ufsf);
 		ufsf_tw_reset(&hba->ufsf);
+=======
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_reset(&hba->ufsf);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 
 	trace_ufshcd_init(dev_name(hba->dev), ret,
@@ -8495,9 +8889,20 @@ static void ufshcd_vreg_set_lpm(struct ufs_hba *hba)
 	 * Some device need VCC off delay but host cannot provide this delay
 	 * VCC always on to save these kind of device.
 	 */
+<<<<<<< HEAD
 	if (ufshcd_vops_has_vcc_always_on(hba) &&
 	    (hba->dev_quirks & UFS_DEVICE_QUIRK_VCC_OFF_DELAY))
+=======
+#ifdef MI_UFS_VCC_ALWAYS_ON
+	if (hba->quirks & UFSHCD_QUIRK_UFS_VCC_ALWAYS_ON) {
+#else
+	if ((hba->quirks & UFSHCD_QUIRK_UFS_VCC_ALWAYS_ON) &&
+	    (hba->dev_quirks & UFS_DEVICE_QUIRK_VCC_OFF_DELAY)) {
+#endif
+		printk("%s VCC Always on\n", __func__);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		return;
+	}
 
 	/*
 	 * It seems some UFS devices may keep drawing more than sleep current
@@ -8549,10 +8954,20 @@ static int ufshcd_vreg_set_hpm(struct ufs_hba *hba)
 	 * Some device need VCC off delay but host cannot provide this delay
 	 * VCC always on to save these kind of device.
 	 */
+<<<<<<< HEAD
 	if (ufshcd_vops_has_vcc_always_on(hba) &&
 	    (hba->dev_quirks & UFS_DEVICE_QUIRK_VCC_OFF_DELAY))
+=======
+#ifdef MI_UFS_VCC_ALWAYS_ON
+	if (hba->quirks & UFSHCD_QUIRK_UFS_VCC_ALWAYS_ON) {
+#else
+	if ((hba->quirks & UFSHCD_QUIRK_UFS_VCC_ALWAYS_ON) &&
+	    (hba->dev_quirks & UFS_DEVICE_QUIRK_VCC_OFF_DELAY)) {
+#endif
+		printk("%s VCC Always on\n", __func__);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		goto out;
-
+	}
 	if (ufshcd_is_ufs_dev_poweroff(hba) && ufshcd_is_link_off(hba) &&
 	    !hba->dev_info.is_lu_power_on_wp) {
 		ret = ufshcd_setup_vreg(hba, true);
@@ -8622,9 +9037,15 @@ static int ufshcd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 		req_dev_pwr_mode = UFS_POWERDOWN_PWR_MODE;
 		req_link_state = UIC_LINK_OFF_STATE;
 	}
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 		ufsf_hpb_suspend(&hba->ufsf);
 		ufsf_tw_suspend(&hba->ufsf);
+=======
+
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_suspend(&hba->ufsf);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 #if defined(CONFIG_SCSI_SKHPB)
 		if (hba->dev_info.wmanufacturerid == UFS_VENDOR_SKHYNIX)
@@ -8678,6 +9099,7 @@ static int ufshcd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 			ufshcd_disable_auto_bkops(hba);
 		}
 	}
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE) && defined(CONFIG_SCSI_UFS_TW)
 		if (ufstw_need_flush(&hba->ufsf)) {
 			ret = -EAGAIN;
@@ -8685,6 +9107,13 @@ static int ufshcd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 			goto enable_gating;
 		}
 #endif
+=======
+
+	/* MTK PATCH */
+	ret = ufshcd_check_hibern8_exit(hba);
+	if (ret)
+		goto enable_gating;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	if ((req_dev_pwr_mode != hba->curr_dev_pwr_mode) &&
 	     ((ufshcd_is_runtime_pm(pm_op) && !hba->auto_bkops_enabled) ||
@@ -8700,7 +9129,27 @@ static int ufshcd_suspend(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 	ret = ufshcd_link_state_transition(hba, req_link_state, 1);
 	if (ret)
 		goto set_dev_active;
+<<<<<<< HEAD
 
+=======
+	}
+
+	ufshcd_set_reg_state(hba, UFS_REG_SUSPEND_SET_LPM); /* MTK PATCH */
+	ufshcd_vreg_set_lpm(hba);
+
+	/*
+	 * Some device need VCC off delay and host can provide this delay
+	 */
+#ifdef MI_UFS_VCC_ALWAYS_ON
+	if (hba->quirks & UFSHCD_QUIRK_UFS_VCC_ALWAYS_ON) {
+#else
+	if (!(hba->quirks & UFSHCD_QUIRK_UFS_VCC_ALWAYS_ON) &&
+	    (hba->dev_quirks & UFS_DEVICE_QUIRK_VCC_OFF_DELAY)) {
+#endif
+		printk("%s VCC Always on\n", __func__);
+		mdelay(5);
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 disable_clks:
 	/*
 	 * Call vendor specific suspend callback. As these callbacks may access
@@ -8745,8 +9194,9 @@ set_link_active:
 	ufshcd_vreg_set_hpm(hba);
 	if (ufshcd_is_link_hibern8(hba) && !ufshcd_uic_hibern8_exit(hba))
 		ufshcd_set_link_active(hba);
-	else if (ufshcd_is_link_off(hba))
+	else if (ufshcd_is_link_off(hba)) {
 		ufshcd_host_reset_and_restore(hba);
+}
 set_dev_active:
 	if (!ufshcd_set_dev_pwr_mode(hba, UFS_ACTIVE_PWR_MODE))
 		ufshcd_disable_auto_bkops(hba);
@@ -8754,12 +9204,27 @@ enable_gating:
 	if (hba->clk_scaling.is_allowed)
 		ufshcd_resume_clkscaling(hba);
 	hba->clk_gating.is_suspended = false;
+<<<<<<< HEAD
+=======
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_resume(&hba->ufsf);
+#endif
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	ufshcd_release(hba);
 	ufshcd_crypto_resume(hba, pm_op);
 out:
 	hba->pm_op_in_progress = 0;
+<<<<<<< HEAD
 	if (ret)
+=======
+
+	/* MTK PATCH: Release deepidle/SODI @enter UFS suspend callback */
+	ufshcd_vops_deepidle_lock(hba, false);
+
+	if ((ret) && (ret != -EAGAIN)) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		ufshcd_update_evt_hist(hba, UFS_EVT_SUSPEND_ERR, (u32)ret);
+	}
 	return ret;
 }
 
@@ -8777,7 +9242,15 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 {
 	int ret;
 	enum uic_link_state old_link_state;
+<<<<<<< HEAD
 	enum ufs_dev_pwr_mode old_pwr_mode;
+=======
+	int retry = 3;
+	enum ufs_dev_pwr_mode old_pwr_mode;
+
+	/* MTK PATCH: Lock deepidle/SODI @enter UFS resume callback */
+	ufshcd_vops_deepidle_lock(hba, true);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	hba->pm_op_in_progress = 1;
 	old_link_state = hba->uic_link_state;
@@ -8854,9 +9327,15 @@ static int ufshcd_resume(struct ufs_hba *hba, enum ufs_pm_op pm_op)
 
 	if (hba->clk_scaling.is_allowed)
 		ufshcd_resume_clkscaling(hba);
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 			ufsf_hpb_resume(&hba->ufsf);
 			ufsf_tw_resume(&hba->ufsf);
+=======
+
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_resume(&hba->ufsf);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 #if defined(CONFIG_SCSI_SKHPB)
 			skhpb_resume(hba);
@@ -8886,8 +9365,19 @@ disable_vreg:
 	ufshcd_vreg_set_lpm(hba);
 out:
 	hba->pm_op_in_progress = 0;
+<<<<<<< HEAD
 	if (ret)
 		ufshcd_update_evt_hist(hba, UFS_EVT_RESUME_ERR, (u32)ret);
+=======
+
+	/* MTK PATCH: Release deepidle/SODI @enter UFS resume callback */
+	ufshcd_vops_deepidle_lock(hba, false);
+
+	if (ret) {
+		ufshcd_update_evt_hist(hba, UFS_EVT_RESUME_ERR, (u32)ret);
+}
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return ret;
 }
 
@@ -9134,9 +9624,14 @@ EXPORT_SYMBOL(ufshcd_shutdown);
  */
 void ufshcd_remove(struct ufs_hba *hba)
 {
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 	ufsf_hpb_release(&hba->ufsf);
 	ufsf_tw_release(&hba->ufsf);
+=======
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_remove(&hba->ufsf);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 #if defined(CONFIG_SCSI_SKHPB)
 if (hba->dev_info.wmanufacturerid == UFS_VENDOR_SKHYNIX)
@@ -9229,6 +9724,7 @@ out_error:
 	return err;
 }
 EXPORT_SYMBOL(ufshcd_alloc_host);
+
 
 /**
  * ufshcd_init - Driver initialization routine
@@ -9408,9 +9904,15 @@ int ufshcd_init(struct ufs_hba *hba, void __iomem *mmio_base, unsigned int irq)
 	 * ufshcd_probe_hba().
 	 */
 	ufshcd_set_ufs_dev_active(hba);
+<<<<<<< HEAD
 #if defined(CONFIG_SCSI_UFS_FEATURE)
 	ufsf_hpb_set_init_state(&hba->ufsf);
 	ufsf_tw_set_init_state(&hba->ufsf);
+=======
+
+#if defined(CONFIG_UFSFEATURE)
+	ufsf_set_init_state(&hba->ufsf);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif
 #if defined(CONFIG_SCSI_SKHPB)		/* initialize hpb structures */
 	ufshcd_init_hpb(hba);

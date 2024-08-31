@@ -17,6 +17,9 @@
 #include "ufshcd.h"
 #include "ufshpb_skh.h"
 #include <asm/unaligned.h>
+#if defined(CONFIG_UFS_CHECK) && defined(CONFIG_FACTORY_BUILD)
+#include "ufs-check.h"
+#endif
 
 u32 skhpb_debug_mask = SKHPB_LOG_ERR | SKHPB_LOG_INFO;
 //u32 skhpb_debug_mask = SKHPB_LOG_ERR | SKHPB_LOG_INFO | SKHPB_LOG_DEBUG | SKHPB_LOG_HEX;
@@ -98,6 +101,10 @@ static void skhpb_ppn_prep(struct skhpb_lu *hpb,
 	put_unaligned(ppn, (u64 *)&cmd[6]);
 	cmd[14] = (u8)(sector_len >> skhpb_sects_per_blk_shift); //Transfer length
 	lrbp->cmd->cmd_len = MAX_CDB_SIZE;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	//To verify the values within READ command
 	/* SKHPB_DRIVER_HEXDUMP("[HPB] HPB READ ", 16, 1, cmd, sizeof(cmd), 1); */
 }
@@ -328,6 +335,10 @@ void skhpb_prep_fn(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 		return;
 	if (blk_rq_is_scsi(lrbp->cmd->request))
 		return;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	/*
 	 * TODO: check if ICE is not supported or not.
 	 *
@@ -865,7 +876,11 @@ static int skhpb_set_map_req(struct skhpb_lu *hpb,
 					    list_map_req);
 	if (!map_req) {
 		SKHPB_DRIVER_D("There is no map_req\n");
+<<<<<<< HEAD
 		spin_unlock_bh(&hpb->map_list_lock);
+=======
+		spin_unlock_irqrestore(&hpb->map_list_lock, flags);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		return -EAGAIN;
 	}
 	list_del(&map_req->list_map_req);
@@ -1199,7 +1214,11 @@ static int skhpb_rsp_map_cmd_req(struct skhpb_lu *hpb,
 					cp->subregion_state = SKHPB_SUBREGION_DIRTY;
 					spin_unlock_irqrestore(&hpb->hpb_lock, flags);
 					rsp_info->inactive_cnt = 0;
+<<<<<<< HEAD
 					if (iter) {
+=======
+					if(iter) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 						rsp_info->active_list.region[0]  = region;
 						rsp_info->active_list.subregion[0] = subregion;
 						rsp_info->active_cnt = 1;
@@ -1211,7 +1230,10 @@ static int skhpb_rsp_map_cmd_req(struct skhpb_lu *hpb,
 			}
 		}
 	return 0;
+<<<<<<< HEAD
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 wakeup_ee_worker:
 	hpb->hba->skhpb_state = SKHPB_FAILED;
 	schedule_work(&hpb->hba->skhpb_eh_work);
@@ -1223,6 +1245,7 @@ void skhpb_rsp_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 {
 	struct skhpb_lu *hpb;
 	struct skhpb_rsp_field *rsp_field;
+	struct skhpb_rsp_field sense_data;
 	struct skhpb_rsp_info *rsp_info;
 	int data_seg_len, num, blk_idx, update_alert;
 
@@ -1249,8 +1272,14 @@ void skhpb_rsp_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 		return;
 	}
 
+<<<<<<< HEAD
 	rsp_field = skhpb_get_hpb_rsp(lrbp);
 
+=======
+	memcpy(&sense_data, &lrbp->ucd_rsp_ptr->sr.sense_data_len,
+		sizeof(struct skhpb_rsp_field));
+	rsp_field = &sense_data;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if ((get_unaligned_be16(rsp_field->sense_data_len + 0)
 		 != SKHPB_DEV_SENSE_SEG_LEN) ||
 			rsp_field->desc_type != SKHPB_DEV_DES_TYPE ||
@@ -1827,6 +1856,7 @@ static int skhpb_req_mempool_init(struct ufs_hba *hba,
 	struct skhpb_rsp_info *rsp_info = NULL;
 	struct skhpb_map_req *map_req = NULL;
 	int i, rec_qd;
+<<<<<<< HEAD
 
 	if (!qd) {
 		qd = hba->nutrs;
@@ -1837,6 +1867,18 @@ static int skhpb_req_mempool_init(struct ufs_hba *hba,
 	else
 		rec_qd = qd;
 
+=======
+
+	if (!qd) {
+		qd = hba->nutrs;
+		SKHPB_DRIVER_D("hba->nutrs = %d\n", hba->nutrs);
+	}
+	if(hpb->hpb_ver >= 0x0200)
+		rec_qd = hpb->lu_max_active_regions;
+	else
+		rec_qd = qd;
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	INIT_LIST_HEAD(&hpb->lh_rsp_info_free);
 	INIT_LIST_HEAD(&hpb->lh_map_req_free);
 	INIT_LIST_HEAD(&hpb->lh_map_req_retry);
@@ -2292,7 +2334,15 @@ int skhpb_control_validation(struct ufs_hba *hba,
 static int skhpb_init(struct ufs_hba *hba)
 {
 	struct skhpb_func_desc func_desc;
+<<<<<<< HEAD
 	int lun, ret, retries;
+=======
+	int ret;
+#if 0
+    int retries;
+#endif
+	u8 lun;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	int hpb_dev = 0;
 	bool do_work;
 
@@ -2304,7 +2354,7 @@ static int skhpb_init(struct ufs_hba *hba)
 	ret = skhpb_read_geo_desc_support(hba, &func_desc);
 	if (ret)
 		goto out_state;
-
+#if 0
 	for (retries = 0; retries < 20; retries++) {
 		if (!hba->lrb_in_use) {
 			ret = ufshcd_query_flag(hba, UPIU_QUERY_OPCODE_SET_FLAG,
@@ -2326,6 +2376,7 @@ static int skhpb_init(struct ufs_hba *hba)
 		if (fHPBReset)
 			SKHPB_DRIVER_I("fHPBReset still set\n");
 	}
+#endif
 
 	skhpb_init_constant();
 
@@ -2340,6 +2391,13 @@ static int skhpb_init(struct ufs_hba *hba)
 
 		if (lu_desc.lu_hpb_enable == false)
 			continue;
+
+#if defined(CONFIG_UFS_CHECK) && defined(CONFIG_FACTORY_BUILD)
+		fill_hpb_gb(hba, lu_desc.lu_max_active_hpb_regions, func_desc.hpb_region_size);
+
+		if (check_wb_hpb_size(hba) == -1)
+			check_hpb_and_tw_provsion(hba);
+#endif
 
 		hba->skhpb_lup[lun] = kzalloc(sizeof(struct skhpb_lu),
 								GFP_KERNEL);

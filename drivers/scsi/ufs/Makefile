@@ -33,6 +33,9 @@ obj-$(CONFIG_SCSI_UFS_FEATURE) += ufsfeature.o
 obj-$(CONFIG_SCSI_UFS_HPB) += ufshpb.o
 obj-$(CONFIG_SCSI_UFS_TW) += ufstw.o
 obj-$(CONFIG_SCSI_SKHPB) += ufshpb_skh.o
+ifeq ($(CONFIG_FACTORY_BUILD),y)
+obj-$(CONFIG_UFS_CHECK) += ufs-check.o
+endif
 obj-$(CONFIG_SCSI_UFSHCD_PCI) += ufshcd-pci.o
 obj-$(CONFIG_SCSI_UFSHCD_PLATFORM) += ufshcd-pltfrm.o
 obj-$(CONFIG_SCSI_UFS_HISI) += ufs-hisi.o

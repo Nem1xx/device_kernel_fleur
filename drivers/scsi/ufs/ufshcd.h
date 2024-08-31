@@ -81,6 +81,7 @@
 
 #define UFSHCD "ufshcd"
 #define UFSHCD_DRIVER_VERSION "0.2"
+#define MI_UFS_VCC_ALWAYS_ON
 
 struct ufs_hba;
 
@@ -479,6 +480,52 @@ struct ufs_saved_pwr_info {
 	bool is_valid;
 };
 
+enum {
+	/* errors which require the host controller reset for recovery */
+	UFS_ERR_HIBERN8_EXIT,
+	UFS_ERR_VOPS_SUSPEND,
+	UFS_ERR_EH,
+	UFS_ERR_CLEAR_PEND_XFER_TM,
+	UFS_ERR_INT_FATAL_ERRORS,
+	UFS_ERR_INT_UIC_ERROR,
+	UFS_ERR_CRYPTO_ENGINE,
+
+	/* other errors */
+	UFS_ERR_HIBERN8_ENTER,
+	UFS_ERR_RESUME,
+	UFS_ERR_SUSPEND,
+	UFS_ERR_LINKSTARTUP,
+	UFS_ERR_POWER_MODE_CHANGE,
+	UFS_ERR_TASK_ABORT,
+	UFS_ERR_MAX,
+};
+
+/* tag stats statistics types */
+enum ts_types {
+	TS_NOT_SUPPORTED	= -1,
+	TS_TAG				= 0,
+	TS_READ				= 1,
+	TS_WRITE			= 2,
+	TS_URGENT_READ		= 3,
+	TS_URGENT_WRITE		= 4,
+	TS_FLUSH			= 5,
+	TS_NUM_STATS		= 6,
+};
+
+/**
+ * struct ufshcd_req_stat - statistics for request handling times (in usec)
+ * @min: shortest time measured
+ * @max: longest time measured
+ * @sum: sum of all the handling times measured (used for average calculation)
+ * @count: number of measurements taken
+ */
+struct ufshcd_req_stat {
+	u64 min;
+	u64 max;
+	u64 sum;
+	u64 count;
+};
+
 /**
  * struct ufs_clk_scaling - UFS clock scaling related data
  * @active_reqs: number of requests that are pending. If this is zero when
@@ -546,9 +593,22 @@ struct ufs_event_hist {
  * @task_abort: tracks task abort events
  */
 struct ufs_stats {
+	bool enabled;
+	u64 **tag_stats;
+	int q_depth;
+	int err_stats[UFS_ERR_MAX];
+	struct ufshcd_req_stat req_stats[TS_NUM_STATS];
+	int query_stats_arr[UPIU_QUERY_OPCODE_MAX][MAX_QUERY_IDN];
 	u32 hibern8_exit_cnt;
 	ktime_t last_hibern8_exit_tstamp;
 	struct ufs_event_hist event[UFS_EVT_CNT];
+
+	u32 pa_err_cnt_total;
+	u32 pa_err_cnt[UFS_EC_PA_MAX];
+	u32 dl_err_cnt_total;
+	u32 dl_err_cnt[UFS_EC_DL_MAX];
+	u32 dme_err_cnt;
+	u32 power_mode_change_cnt;
 };
 
 /* UFSHCD states */
@@ -559,6 +619,43 @@ enum {
 	UFSHCD_STATE_EH_SCHEDULED,
 };
 
+<<<<<<< HEAD
+=======
+/* MTK PATCH UFS Host Controller debug print bitmask */
+#define UFSHCD_DBG_PRINT_CLK_FREQ_EN		UFS_BIT(0)
+#define UFSHCD_DBG_PRINT_UIC_ERR_HIST_EN	UFS_BIT(1)
+#define UFSHCD_DBG_PRINT_HOST_REGS_EN		UFS_BIT(2)
+#define UFSHCD_DBG_PRINT_TRS_EN			UFS_BIT(3)
+#define UFSHCD_DBG_PRINT_TMRS_EN		UFS_BIT(4)
+#define UFSHCD_DBG_PRINT_PWR_EN			UFS_BIT(5)
+#define UFSHCD_DBG_PRINT_HOST_STATE_EN		UFS_BIT(6)
+#define UFSHCD_DBG_PRINT_ABORT_CMD_EN		UFS_BIT(7)
+#define UFSHCD_DBG_PRINT_QCMD_EN		UFS_BIT(8)
+
+#define UFSHCD_DBG_PRINT_ALL						   \
+		(UFSHCD_DBG_PRINT_CLK_FREQ_EN		|		   \
+		 UFSHCD_DBG_PRINT_UIC_ERR_HIST_EN	|		   \
+		 UFSHCD_DBG_PRINT_HOST_REGS_EN | UFSHCD_DBG_PRINT_TRS_EN | \
+		 UFSHCD_DBG_PRINT_TMRS_EN | UFSHCD_DBG_PRINT_PWR_EN |	   \
+		 UFSHCD_DBG_PRINT_HOST_STATE_EN |	   \
+		 UFSHCD_DBG_PRINT_ABORT_CMD_EN)
+
+enum ufs_crypto_state {
+	UFS_CRYPTO_HW_FDE             = (1 << 0),
+	UFS_CRYPTO_HW_FDE_ENCRYPTED   = (1 << 1),
+	UFS_CRYPTO_HW_FBE             = (1 << 2),
+	UFS_CRYPTO_HW_FBE_ENCRYPTED   = (1 << 3),
+};
+
+#if defined(CONFIG_UFS_CHECK) && defined(CONFIG_FACTORY_BUILD)
+typedef struct {
+	int total_gb;
+	int hpb_gb;
+	int wb_gb;
+} check_wb_hpb_t;
+#endif
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 /**
  * struct ufs_hba - per adapter private structure
  * @mmio_base: UFSHCI base register address
@@ -868,6 +965,9 @@ struct ufs_hba {
 	u8 skhpb_quicklist_lu_enable[UFS_UPIU_MAX_GENERAL_LUN];
 	struct scsi_device *sdev_ufs_lu[UFS_UPIU_MAX_GENERAL_LUN];
 #endif
+#if defined(CONFIG_UFS_CHECK) && defined(CONFIG_FACTORY_BUILD)
+	check_wb_hpb_t check;
+#endif
 
 #ifdef CONFIG_SCSI_UFS_CRYPTO
 	/* crypto */
@@ -1117,6 +1217,10 @@ int ufshcd_exec_dev_cmd(struct ufs_hba *hba,
 						enum dev_cmd_type cmd_type, int timeout);
 int ufshcd_comp_scsi_upiu(struct ufs_hba *hba, struct ufshcd_lrb *lrbp);
 int ufshcd_map_sg(struct ufs_hba *hba, struct ufshcd_lrb *lrbp);
+void ufshcd_scsi_block_requests(struct ufs_hba *hba);
+void ufshcd_scsi_unblock_requests(struct ufs_hba *hba);
+int ufshcd_wait_for_doorbell_clr(struct ufs_hba *hba,
+					u64 wait_timeout_us);
 #endif
 
 #if defined(CONFIG_SCSI_SKHPB)
