@@ -38,6 +38,11 @@ ccflags-y  += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
 ccflags-y  += -I$(srctree)/drivers/misc/mediatek/thermal/fakeHeader/
 ccflags-y  += -I$(srctree)/drivers/misc/mediatek/base/power/include/
 ccflags-y  += -I$(srctree)/drivers/misc/mediatek/base/power/ppm_v3/src/mach/$(PDIR)
+<<<<<<< HEAD
+=======
+endif
+ccflags-y  += -I$(srctree)/drivers/power/supply/
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 ccflags-y  += -I$(srctree)/drivers/misc/mediatek/video/include
 ccflags-y  += -I$(srctree)/drivers/misc/mediatek/gpu/ged/include
 ccflags-y  += -I$(srctree)/drivers/misc/mediatek/thermal/common/inc/
@@ -114,6 +119,7 @@ obj-$(CONFIG_THERMAL) += mtk_cooler_sysrst.o
 obj-$(CONFIG_THERMAL) += mtk_cooler_VR_FPS.o
 endif
 
+<<<<<<< HEAD
 ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6785"))
 ifeq ($(CONFIG_MTK_THERMAL_PA_VIA_ATCMD),y)
     obj-$(CONFIG_THERMAL) += mtk_cooler_mutt.o
@@ -145,22 +151,38 @@ obj-$(CONFIG_THERMAL) += mtk_cooler_VR_FPS.o
 endif
 
 ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6739" "mt6768"))
+=======
+
+ifneq (,$(filter $(CONFIG_MTK_PLATFORM), "mt6739" "mt6771" "mt6775" "mt6765" "mt6768" "mt6785" "mt6781"))
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 ifeq ($(CONFIG_MTK_THERMAL_PA_VIA_ATCMD),y)
     obj-$(CONFIG_THERMAL) += mtk_cooler_mutt.o
 endif
 ifeq ($(CONFIG_MTK_PUMP_EXPRESS_PLUS_30_SUPPORT),y)
-	obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v1.o
+	#obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v1.o
 else
 	ifeq ($(CONFIG_MTK_GAUGE_VERSION),30)
+<<<<<<< HEAD
 		obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v2.o
+=======
+		#obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_v1.o
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		ifeq ($(CONFIG_MTK_DUAL_CHARGER_SUPPORT),y)
-			obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_2nd.o
+			#obj-$(CONFIG_THERMAL) += mtk_cooler_bcct_2nd.o
 		endif
 	else
-		obj-$(CONFIG_THERMAL) += mtk_cooler_bcct.o
+		#obj-$(CONFIG_THERMAL) += mtk_cooler_bcct.o
 	endif
 endif
+<<<<<<< HEAD
 
+=======
+obj-$(CONFIG_THERMAL) += mtk_cooler_gpu_cus.o
+ifeq ($(CONFIG_MTK_VPU_SUPPORT),y)
+	obj-$(CONFIG_THERMAL) += mtk_cooler_vpu_cus.o
+endif
+obj-$(CONFIG_THERMAL) += mtk_cooler_char_curr_cus.o
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 obj-$(CONFIG_THERMAL) += mtk_cooler_atm.o
 obj-$(CONFIG_THERMAL) += mtk_cooler_dtm.o
 obj-$(CONFIG_THERMAL) += mtk_cooler_sysrst.o
