@@ -11,5 +11,15 @@
 # GNU General Public License for more details.
 #
 
+<<<<<<<< HEAD:drivers/soc/mediatek/devapc/mt6739/Makefile
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/
 obj-y += devapc.o
+========
+#
+# Makefile for misc devices that really don't fit anywhere else.
+#
+
+obj-y += DW9800VAF.o
+
+
+>>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/lens/main/common/dw9800vaf/Makefile
