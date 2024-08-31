@@ -395,7 +395,12 @@ static inline int typec_norp_src_attached_entry(struct tcpc_device *tcpc)
 #ifdef CONFIG_WATER_DETECTION
 #ifdef CONFIG_WD_POLLING_ONLY
 	if (!tcpc->typec_power_ctrl) {
+<<<<<<< HEAD
 		if (tcpc->bootmode == 8 || tcpc->bootmode == 9)
+=======
+		if (get_boot_mode() == KERNEL_POWER_OFF_CHARGING_BOOT ||
+		    get_boot_mode() == LOW_POWER_OFF_CHARGING_BOOT)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 			typec_check_water_status(tcpc);
 
 		tcpci_set_usbid_polling(tcpc, false);
@@ -553,7 +558,13 @@ static inline void typec_unattached_cc_entry(struct tcpc_device *tcpc)
 	}
 #endif	/* CONFIG_TYPEC_CAP_ROLE_SWAP */
 #ifdef CONFIG_CABLE_TYPE_DETECTION
+<<<<<<< HEAD
 	tcpc_typec_handle_ctd(tcpc, TCPC_CABLE_TYPE_NONE);
+=======
+	if (tcpc->typec_state == typec_attached_snk ||
+	    tcpc->typec_state == typec_unattachwait_pe)
+		tcpc_typec_handle_ctd(tcpc, TCPC_CABLE_TYPE_NONE);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif /* CONFIG_CABLE_TYPE_DETECTION */
 
 	tcpc->typec_role = tcpc->typec_role_new;
@@ -831,11 +842,27 @@ static inline bool typec_role_is_try_src(
 
 static inline void typec_try_src_entry(struct tcpc_device *tcpc)
 {
+<<<<<<< HEAD
 	TYPEC_NEW_STATE(typec_try_src);
 	tcpc->typec_drp_try_timeout = false;
 
 	tcpci_set_cc(tcpc, TYPEC_CC_RP);
 	tcpc_enable_timer(tcpc, TYPEC_TRY_TIMER_DRP_TRY);
+=======
+	uint32_t chip_id;
+	int rv = 0;
+
+	TYPEC_NEW_STATE(typec_try_src);
+	tcpc->typec_drp_try_timeout = false;
+
+	tcpci_set_cc(tcpc, TYPEC_CC_RP);
+	tcpc_enable_timer(tcpc, TYPEC_TRY_TIMER_DRP_TRY);
+
+	rv = tcpci_get_chip_id(tcpc, &chip_id);
+	if (!rv &&  SC2150A_DID == chip_id)  {
+		tcpc_typec_handle_cc_change(tcpc);
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 static inline void typec_trywait_snk_entry(struct tcpc_device *tcpc)
@@ -890,11 +917,27 @@ static inline bool typec_role_is_try_sink(
 
 static inline void typec_try_snk_entry(struct tcpc_device *tcpc)
 {
+<<<<<<< HEAD
 	TYPEC_NEW_STATE(typec_try_snk);
 	tcpc->typec_drp_try_timeout = false;
 
 	tcpci_set_cc(tcpc, TYPEC_CC_RD);
 	tcpc_enable_timer(tcpc, TYPEC_TRY_TIMER_DRP_TRY);
+=======
+	int rv = 0;
+	uint32_t chip_id;
+
+	TYPEC_NEW_STATE(typec_try_snk);
+	tcpc->typec_drp_try_timeout = false;
+
+	tcpci_set_cc(tcpc, TYPEC_CC_RD);
+	tcpc_enable_timer(tcpc, TYPEC_TRY_TIMER_DRP_TRY);
+
+	rv = tcpci_get_chip_id(tcpc, &chip_id);
+	if (!rv && SC2150A_DID == chip_id)  {
+		tcpc_typec_handle_cc_change(tcpc);
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 static inline void typec_trywait_src_entry(struct tcpc_device *tcpc)
@@ -1546,6 +1589,8 @@ static inline bool typec_handle_cc_changed_entry(struct tcpc_device *tcpc)
 static inline void typec_attach_wait_entry(struct tcpc_device *tcpc)
 {
 	bool as_sink;
+	int rv = 0;
+	uint32_t chip_id;
 #ifdef CONFIG_USB_POWER_DELIVERY
 	struct pd_port *pd_port = &tcpc->pd_port;
 #endif	/* CONFIG_USB_POWER_DELIVERY */
@@ -1616,9 +1661,13 @@ static inline void typec_attach_wait_entry(struct tcpc_device *tcpc)
 	tcpci_notify_attachwait_state(tcpc, as_sink);
 #endif	/* CONFIG_TYPEC_NOTIFY_ATTACHWAIT */
 
-	if (as_sink)
+	rv = tcpci_get_chip_id(tcpc, &chip_id);
+	if (as_sink) {
 		TYPEC_NEW_STATE(typec_attachwait_snk);
-	else {
+
+	if (!rv &&  SC2150A_DID == chip_id)
+		tcpci_set_cc(tcpc, TYPEC_CC_RD);
+	} else {
 		/* Advertise Rp level before Attached.SRC Ellisys 3.1.6359 */
 		tcpci_set_cc(tcpc,
 			TYPEC_CC_PULL(tcpc->typec_local_rp_level, TYPEC_CC_RP));
@@ -1647,7 +1696,11 @@ static inline int typec_attached_snk_cc_detach(struct tcpc_device *tcpc)
 #endif /* CONFIG_COMPATIBLE_APPLE_TA */
 	} else if (tcpc->pd_port.pe_data.pd_prev_connected) {
 		TYPEC_INFO2("Detach_CC (PD)\n");
+<<<<<<< HEAD
 		tcpc_enable_timer(tcpc, TYPEC_TIMER_PDDEBOUNCE);
+=======
+		tcpc_enable_timer(tcpc, TYPEC_TIMER_CCDEBOUNCE);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 #endif	/* CONFIG_USB_POWER_DELIVERY */
 	return 0;
@@ -1713,7 +1766,11 @@ static inline void typec_detach_wait_entry(struct tcpc_device *tcpc)
 		break;
 #endif	/* CONFIG_TYPEC_CAP_TRY_SINK */
 	default:
+<<<<<<< HEAD
 		tcpc_enable_timer(tcpc, TYPEC_TIMER_PDDEBOUNCE);
+=======
+		tcpc_enable_timer(tcpc, TYPEC_TIMER_CCDEBOUNCE);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		break;
 	}
 }
@@ -1889,6 +1946,10 @@ static inline bool typec_check_false_ra_detach(struct tcpc_device *tcpc)
 
 	if (drp) {
 		tcpci_set_cc(tcpc, TYPEC_CC_DRP);
+<<<<<<< HEAD
+=======
+		typec_enable_low_power_mode(tcpc, TYPEC_CC_DRP);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		tcpci_alert_status_clear(tcpc,
 			TCPC_REG_ALERT_EXT_RA_DETACH);
 	}
@@ -2063,7 +2124,12 @@ int tcpc_typec_handle_cc_change(struct tcpc_device *tcpc)
 		if (typec_state_old == typec_unattached_snk ||
 		    typec_state_old == typec_unattached_src) {
 #ifdef CONFIG_WD_POLLING_ONLY
+<<<<<<< HEAD
 			if (tcpc->bootmode == 8 || tcpc->bootmode == 9)
+=======
+			if (get_boot_mode() == KERNEL_POWER_OFF_CHARGING_BOOT
+			    || get_boot_mode() == LOW_POWER_OFF_CHARGING_BOOT)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 				typec_check_water_status(tcpc);
 #else
 			typec_check_water_status(tcpc);
@@ -2182,6 +2248,7 @@ static inline int typec_handle_pe_idle(struct tcpc_device *tcpc)
 	return 0;
 }
 
+<<<<<<< HEAD
 #ifdef CONFIG_USB_PD_WAIT_BC12
 static inline void typec_handle_pd_wait_bc12(struct tcpc_device *tcpc)
 {
@@ -2196,11 +2263,34 @@ static inline void typec_handle_pd_wait_bc12(struct tcpc_device *tcpc)
 		POWER_SUPPLY_PROP_USB_TYPE, &val);
 	TYPEC_INFO("type=%d, ret,chg_type=%d,%d, count=%d\n", type,
 		ret, val.intval, tcpc->pd_wait_bc12_count);
+=======
+inline int typec_pd_start_entry(struct tcpc_device *tcpc)
+{
+	return pd_put_cc_attached_event(tcpc, tcpc->typec_attach_new);
+}
+
+#ifdef CONFIG_USB_PD_WAIT_BC12
+static inline void typec_handle_pd_wait_bc12(struct tcpc_device *tcpc)
+{
+	uint8_t type = TYPEC_UNATTACHED;
+	enum charger_type chg_type = CHARGER_UNKNOWN;
+
+	mutex_lock(&tcpc->access_lock);
+
+	type = tcpc->typec_attach_new;
+	chg_type = mt_get_charger_type();
+	TYPEC_INFO("type=%d, chg_type=%d, count=%d\n", type, chg_type,
+		tcpc->pd_wait_bc12_count);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	if (type != TYPEC_ATTACHED_SNK && type != TYPEC_ATTACHED_DBGACC_SNK)
 		goto out;
 
+<<<<<<< HEAD
 	if ((ret >= 0 && val.intval != POWER_SUPPLY_USB_TYPE_UNKNOWN) ||
+=======
+	if (chg_type != CHARGER_UNKNOWN ||
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		tcpc->pd_wait_bc12_count >= 20) {
 		__pd_put_cc_attached_event(tcpc, type);
 	} else {
@@ -2540,8 +2630,15 @@ int tcpc_typec_handle_ps_change(struct tcpc_device *tcpc, int vbus_level)
 	}
 #endif	/* CONFIG_TYPEC_CAP_AUDIO_ACC_SINK_VBUS */
 
+<<<<<<< HEAD
 	if (vbus_level >= TCPC_VBUS_VALID)
 		return typec_handle_vbus_present(tcpc);
+=======
+	if (vbus_level >= TCPC_VBUS_VALID) {
+		typec_disable_low_power_mode(tcpc);
+		return typec_handle_vbus_present(tcpc);
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	return typec_handle_vbus_absent(tcpc);
 }
@@ -2783,7 +2880,10 @@ int tcpc_typec_init(struct tcpc_device *tcpc, uint8_t typec_role)
 
 	mutex_lock(&tcpc->access_lock);
 	tcpc->wake_lock_pd = 0;
+<<<<<<< HEAD
 	tcpc->wake_lock_user = true;
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	mutex_unlock(&tcpc->access_lock);
 	tcpc->typec_usb_sink_curr = CONFIG_TYPEC_SNK_CURR_DFT;
 
@@ -2820,6 +2920,10 @@ int tcpc_typec_handle_wd(struct tcpc_device *tcpc, bool wd)
 {
 	int ret = 0;
 
+<<<<<<< HEAD
+=======
+	pr_info("%s: wd = %d\n", __func__, wd);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (!(tcpc->tcpc_flags & TCPC_FLAGS_WATER_DETECTION))
 		return 0;
 
@@ -2831,7 +2935,13 @@ int tcpc_typec_handle_wd(struct tcpc_device *tcpc, bool wd)
 	}
 
 #ifdef CONFIG_MTK_KERNEL_POWER_OFF_CHARGING
+<<<<<<< HEAD
 	if (tcpc->bootmode == 8 || tcpc->bootmode == 9) {
+=======
+	ret = get_boot_mode();
+	if (ret == KERNEL_POWER_OFF_CHARGING_BOOT ||
+	    ret == LOW_POWER_OFF_CHARGING_BOOT) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		TYPEC_INFO("KPOC does not enter water protection\n");
 		goto out;
 	}
@@ -2869,6 +2979,10 @@ int tcpc_typec_handle_ctd(struct tcpc_device *tcpc,
 {
 	int ret;
 
+<<<<<<< HEAD
+=======
+	TCPC_INFO("%s: cable_type = %d\n", __func__, cable_type);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (!(tcpc->tcpc_flags & TCPC_FLAGS_CABLE_TYPE_DETECTION))
 		return 0;
 
@@ -2886,6 +3000,27 @@ int tcpc_typec_handle_ctd(struct tcpc_device *tcpc,
 		}
 	}
 
+<<<<<<< HEAD
+=======
+	TCPC_INFO("%s: typec_state=%s, pre_ct=%d, ct=%d, typec_ct=%d\n",
+		  __func__, typec_state_name[tcpc->typec_state],
+		  tcpc->pre_typec_cable_type,
+		  cable_type,  tcpc->typec_cable_type);
+
+	if (tcpc->typec_state == typec_attachwait_snk) {
+		TCPC_INFO("%s during attachwait_snk\n", __func__);
+		tcpc->pre_typec_cable_type = cable_type;
+	} else if (tcpc->typec_state == typec_try_snk ||
+		   (tcpc->typec_state == typec_attached_snk &&
+			cable_type != TCPC_CABLE_TYPE_NONE)) {
+		if (tcpc->pre_typec_cable_type != TCPC_CABLE_TYPE_NONE) {
+			TCPC_INFO("%s try_snk cable(%d, %d)\n", __func__,
+				  tcpc->pre_typec_cable_type, cable_type);
+			cable_type = tcpc->pre_typec_cable_type;
+			tcpc->pre_typec_cable_type = TCPC_CABLE_TYPE_NONE;
+		}
+	}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	TCPC_INFO("%s cable (%d, %d)\n", __func__, tcpc->typec_cable_type,
 		  cable_type);
 

@@ -83,6 +83,7 @@ static void __pd_free_event(
 	}
 }
 
+<<<<<<< HEAD
 void pd_free_msg(struct tcpc_device *tcpc, struct pd_msg *pd_msg)
 {
 	mutex_lock(&tcpc->access_lock);
@@ -92,6 +93,39 @@ void pd_free_msg(struct tcpc_device *tcpc, struct pd_msg *pd_msg)
 
 void pd_free_event(struct tcpc_device *tcpc, struct pd_event *pd_event)
 {
+=======
+bool __pd_is_msg_empty(struct tcpc_device *tcpc)
+{
+	int i;
+	uint8_t mask;
+
+	for (i = 0, mask = 1; i < PD_MSG_BUF_SIZE; i++, mask <<= 1) {
+		if ((mask & tcpc->pd_msg_buffer_allocated) != 0)
+			return false;
+	}
+	return true;
+}
+
+bool pd_is_msg_empty(struct tcpc_device *tcpc)
+{
+	bool empty;
+
+	mutex_lock(&tcpc->access_lock);
+	empty = __pd_is_msg_empty(tcpc);
+	mutex_unlock(&tcpc->access_lock);
+	return empty;
+}
+
+void pd_free_msg(struct tcpc_device *tcpc, struct pd_msg *pd_msg)
+{
+	mutex_lock(&tcpc->access_lock);
+	__pd_free_msg(tcpc, pd_msg);
+	mutex_unlock(&tcpc->access_lock);
+}
+
+void pd_free_event(struct tcpc_device *tcpc, struct pd_event *pd_event)
+{
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	mutex_lock(&tcpc->access_lock);
 	__pd_free_event(tcpc, pd_event);
 	mutex_unlock(&tcpc->access_lock);
@@ -719,6 +753,7 @@ bool pd_put_cc_attached_event(
 		struct tcpc_device *tcpc, uint8_t type)
 {
 	bool ret = false;
+<<<<<<< HEAD
 #ifdef CONFIG_USB_POWER_DELIVERY
 #ifdef CONFIG_USB_PD_WAIT_BC12
 	int rv = 0;
@@ -746,6 +781,27 @@ bool pd_put_cc_attached_event(
 
 	ret = __pd_put_cc_attached_event(tcpc, type);
 
+=======
+
+	mutex_lock(&tcpc->access_lock);
+
+#ifdef CONFIG_USB_POWER_DELIVERY
+#ifdef CONFIG_USB_PD_WAIT_BC12
+	if ((type == TYPEC_ATTACHED_SNK || type == TYPEC_ATTACHED_DBGACC_SNK) &&
+		mt_get_charger_type() == CHARGER_UNKNOWN) {
+		tcpc->pd_wait_bc12_count = 1;
+		tcpc_enable_timer(tcpc, TYPEC_RT_TIMER_PD_WAIT_BC12);
+		mutex_unlock(&tcpc->access_lock);
+		return ret;
+	}
+	tcpc->pd_wait_bc12_count = 0;
+	tcpc_disable_timer(tcpc, TYPEC_RT_TIMER_PD_WAIT_BC12);
+#endif /* CONFIG_USB_PD_WAIT_BC12 */
+#endif /* CONFIG_USB_POWER_DELIVERY */
+
+	ret = __pd_put_cc_attached_event(tcpc, type);
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	mutex_unlock(&tcpc->access_lock);
 
 	return ret;
@@ -902,7 +958,11 @@ bool pd_put_pd_msg_event(struct tcpc_device *tcpc, struct pd_msg *pd_msg)
 #ifdef CONFIG_USB_PD_RETRY_CRC_DISCARD
 	if (discard_pending) {
 		tcpc_disable_timer(tcpc, PD_TIMER_DISCARD);
+<<<<<<< HEAD
 		pd_put_hw_event(tcpc, PD_HW_TX_FAILED);
+=======
+		pd_put_hw_event(tcpc, PD_HW_TX_DISCARD);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 #endif	/* CONFIG_USB_PD_RETRY_CRC_DISCARD */
 
@@ -1167,7 +1227,12 @@ void pd_notify_pe_cancel_pr_swap(struct pd_port *pd_port)
 	if (!tcpci_check_vbus_valid(tcpc)
 		&& (pd_port->request_v >= 4000)) {
 		TCPC_DBG("cancel_pr_swap_vbus=0\n");
+<<<<<<< HEAD
 		pd_put_tcp_pd_event(pd_port, TCP_DPM_EVT_ERROR_RECOVERY);
+=======
+		pd_put_tcp_pd_event(pd_port, TCP_DPM_EVT_ERROR_RECOVERY,
+				    PD_TCP_FROM_PE);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 }
 
@@ -1187,6 +1252,21 @@ void pd_noitfy_pe_bist_mode(struct pd_port *pd_port, uint8_t mode)
 	mutex_lock(&tcpc->access_lock);
 	tcpc->pd_bist_mode = mode;
 	mutex_unlock(&tcpc->access_lock);
+<<<<<<< HEAD
+=======
+}
+
+bool pd_is_pe_wait_pd_transmit_done(struct pd_port *pd_port)
+{
+	bool tx_wait;
+	struct tcpc_device *tcpc = pd_port->tcpc;
+
+	mutex_lock(&tcpc->access_lock);
+	tx_wait = tcpc->pd_transmit_state == PD_TX_STATE_WAIT_CRC_PD;
+	mutex_unlock(&tcpc->access_lock);
+
+	return tx_wait;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 
 void pd_notify_pe_transmit_msg(

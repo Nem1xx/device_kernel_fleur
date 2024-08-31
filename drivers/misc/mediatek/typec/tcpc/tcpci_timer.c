@@ -359,6 +359,8 @@ static inline void on_pe_timer_timeout(
 		struct tcpc_device *tcpc, uint32_t timer_id)
 {
 	struct pd_event pd_event = {0};
+	int rv = 0;
+	uint32_t chip_id = 0;
 
 	pd_event.event_type = PD_EVT_TIMER_MSG;
 	pd_event.msg = timer_id;
@@ -389,7 +391,11 @@ static inline void on_pe_timer_timeout(
 #ifdef CONFIG_USB_PD_RETRY_CRC_DISCARD
 	case PD_TIMER_DISCARD:
 		tcpc->pd_discard_pending = false;
+<<<<<<< HEAD
 		pd_put_hw_event(tcpc, PD_HW_TX_FAILED);
+=======
+		pd_put_hw_event(tcpc, PD_HW_TX_DISCARD);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		break;
 #endif	/* CONFIG_USB_PD_RETRY_CRC_DISCARD */
 
@@ -414,6 +420,16 @@ static inline void on_pe_timer_timeout(
 	case PD_TIMER_PE_IDLE_TOUT:
 		TCPC_INFO("pe_idle tout\n");
 		pd_put_pe_event(&tcpc->pd_port, PD_PE_IDLE);
+<<<<<<< HEAD
+=======
+		break;
+
+	case PD_TIMER_HARD_RESET_COMPLETE:
+		rv = tcpci_get_chip_id(tcpc, &chip_id);
+		if (!rv &&  SC2150A_DID == chip_id) {
+			pd_put_sent_hard_reset_event(tcpc);
+		}
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		break;
 
 	default:

@@ -219,11 +219,20 @@ static const char *const tcp_dpm_evt_name[] = {
 	"error_recovery",
 };
 
+<<<<<<< HEAD
 static inline void print_tcp_event(struct tcpc_device *tcpc, uint8_t msg)
 {
 	if (msg < TCP_DPM_EVT_NR)
 		PE_EVT_INFO("tcp_event(%s), %d\n",
 			tcp_dpm_evt_name[msg], msg);
+=======
+static inline void print_tcp_event(struct tcpc_device *tcpc,
+	uint8_t msg, uint8_t from)
+{
+	if (msg < TCP_DPM_EVT_NR)
+		PE_EVT_INFO("tcp_event(%s), %d, %d\n",
+			    tcp_dpm_evt_name[msg], msg, from);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 }
 #endif
 
@@ -265,7 +274,11 @@ static inline void print_event(
 		break;
 
 	case PD_EVT_TCP_MSG:
+<<<<<<< HEAD
 		print_tcp_event(tcpc, pd_event->msg);
+=======
+		print_tcp_event(tcpc, pd_event->msg, pd_event->msg_sec);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		break;
 	}
 #endif
@@ -322,10 +335,79 @@ static inline bool pd_process_ready_protocol_error(struct pd_port *pd_port)
 		PE_SRC_CHUNK_RECEIVED : PE_SRC_SEND_NOT_SUPPORTED);
 	return true;
 #else
+<<<<<<< HEAD
+=======
 	return false;
 #endif	/* CONFIG_USB_PD_REV30 */
 }
 
+#ifdef CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG
+
+static inline bool pd_process_unexpected_alert(
+	struct pd_port *pd_port, struct pd_event *pd_event)
+{
+#ifdef CONFIG_USB_PD_REV30_ALERT_REMOTE
+	struct tcpc_device __maybe_unused *tcpc = pd_port->tcpc;
+
+	if (pd_event->event_type == PD_EVT_DATA_MSG ||
+		pd_event->msg == PD_DATA_ALERT) {
+		PE_INFO("unexpected_alert\n");
+
+		pd_dpm_inform_alert(pd_port);
+		pd_free_unexpected_event(pd_port);
+		return true;
+	}
+#endif	/* CONFIG_USB_PD_REV30_ALERT_REMOTE */
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
+	return false;
+#endif	/* CONFIG_USB_PD_REV30 */
+}
+
+<<<<<<< HEAD
+=======
+static inline bool pd_process_unexpected_message(
+	struct pd_port *pd_port, struct pd_event *pd_event)
+{
+	struct pe_data *pe_data = &pd_port->pe_data;
+
+
+	// For 1711 series : IC will auto reties discard message ...
+	if (!(pd_port->tcpc->tcpc_flags & TCPC_FLAGS_RETRY_CRC_DISCARD)) {
+		pe_transit_soft_reset_state(pd_port);
+		return true;
+	}
+
+	/* Save Unexpected Msg */
+	if (pe_data->pd_unexpected_event_pending)
+		pd_free_event(pd_port->tcpc, &pe_data->pd_unexpected_event);
+
+	pe_data->pd_unexpected_event = *pd_event;
+	pd_event->pd_msg = NULL;
+	pe_data->pd_unexpected_event_pending = true;
+
+	if (pd_is_pe_wait_pd_transmit_done(pd_port)) {
+		if (pe_data->pd_sent_ams_init_cmd)
+			PE_TRANSIT_STATE(pd_port, PE_SEND_SOFT_RESET_TX_WAIT);
+		else {
+			if (pd_process_unexpected_alert(pd_port, pd_event))
+				return false;
+
+			PE_TRANSIT_STATE(pd_port, PE_UNEXPECTED_TX_WAIT);
+		}
+	} else {
+		if (pe_data->pd_sent_ams_init_cmd)
+			pe_transit_soft_reset_state(pd_port);
+		else
+			pe_transit_ready_state(pd_port);
+	}
+
+	pd_notify_tcp_event_buf_reset(pd_port, TCP_DPM_RET_DROP_UNEXPECTED);
+	return true;
+}
+#endif	/* CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG */
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 bool pd_process_protocol_error(
 	struct pd_port *pd_port, struct pd_event *pd_event)
 {
@@ -414,6 +496,25 @@ bool pd_process_tx_failed(struct pd_port *pd_port)
 		return false;
 	}
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG
+	if (msg == PD_HW_TX_DISCARD &&
+		(tcpc->tcpc_flags & TCPC_FLAGS_RETRY_CRC_DISCARD)) {
+
+		pd_notify_tcp_event_buf_reset(pd_port,
+					      TCP_DPM_RET_DROP_DISCARD);
+
+		if (pd_port->pe_data.pd_sent_ams_init_cmd)
+			PE_TRANSIT_STATE(pd_port, PE_SEND_SOFT_RESET_STANDBY);
+		else
+			pe_transit_ready_state(pd_port);
+
+		return true;
+	}
+#endif	/* CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG */
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	pe_transit_soft_reset_state(pd_port);
 	return true;
 }
@@ -557,6 +658,12 @@ static inline bool pe_is_valid_pd_msg_id(struct pd_port *pd_port,
 			(pd_event->event_type == PD_EVT_CTRL_MSG) ? 'C' : 'D',
 			pd_event->msg, msg_id);
 		return false;
+	}
+
+	if (((pd_port->pe_data.msg_id_rx[sop_type] + 2) % PD_MSG_ID_MAX)
+						== msg_id) {
+		PE_INFO("Miss Msg!!!\n");
+		pd_port->miss_msg = true;
 	}
 
 	pd_port->pe_data.msg_id_rx[sop_type] = msg_id;
@@ -757,6 +864,8 @@ bool pd_process_event(
 	bool ret = false;
 	struct pd_msg *pd_msg = pd_event->pd_msg;
 	uint8_t tii = pe_check_trap_in_idle_state(pd_port, pd_event);
+	int rv = 0;
+	uint32_t chip_id = 0;
 
 	if (tii < TII_PE_RUNNING)
 		return tii;
@@ -779,6 +888,23 @@ bool pd_process_event(
 		if (!pe_is_valid_pd_msg_role(pd_port, pd_event, pd_msg)) {
 			PE_TRANSIT_STATE(pd_port, PE_ERROR_RECOVERY);
 			return true;
+		}
+		rv = tcpci_get_chip_id(pd_port->tcpc, &chip_id);
+		if (!rv && (SC2150A_DID == chip_id) &&pd_port->miss_msg) {
+			if (pd_port->pe_pd_state == PE_SNK_TRANSITION_SINK) {
+				pd_add_miss_msg(pd_port,pd_event,PD_CTRL_PS_RDY);
+			} else if (pd_port->pe_pd_state == PE_SNK_SELECT_CAPABILITY){
+				switch (pd_event->msg) {
+				case PD_CTRL_PS_RDY:
+					pd_add_miss_msg(pd_port,pd_event,PD_CTRL_ACCEPT);
+					break;
+				case PD_DATA_SOURCE_CAP:
+					pd_add_miss_msg(pd_port,pd_event,PD_CTRL_REJECT);
+					break;
+				}
+			}
+			pd_port->miss_msg = false;
+			return false;
 		}
 	}
 

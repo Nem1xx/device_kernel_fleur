@@ -1058,6 +1058,7 @@ static inline bool pd_try_get_vdm_event(
 
 	switch (pd_port->pe_pd_state) {
 #ifdef CONFIG_USB_PD_PE_SINK
+	case PE_SNK_TRANSITION_SINK:
 	case PE_SNK_READY:
 		ret = pd_get_vdm_event(tcpc, pd_event);
 		break;
@@ -1241,6 +1242,20 @@ static inline uint8_t pd_try_get_active_event(
 	if (!pd_check_tx_ready(pd_port))
 		return PE_NEW_EVT_NULL;
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG
+	if (pd_port->pe_data.pd_unexpected_event_pending) {
+		pd_port->pe_data.pd_unexpected_event_pending = false;
+		*pd_event = pd_port->pe_data.pd_unexpected_event;
+		pd_port->pe_data.pd_unexpected_event.pd_msg = NULL;
+		PE_INFO("##$$120\n");
+		DPM_INFO("Re-Run Unexpected Msg");
+		return PE_NEW_EVT_PD;
+	}
+#endif	/* CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG */
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	ret = pd_dpm_get_ready_reaction(pd_port);
 
 	if (ret == 0) {

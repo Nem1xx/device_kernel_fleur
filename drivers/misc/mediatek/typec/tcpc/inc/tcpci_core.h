@@ -22,7 +22,11 @@
 #ifdef CONFIG_USB_POWER_DELIVERY
 #include "pd_core.h"
 #ifdef CONFIG_USB_PD_WAIT_BC12
+<<<<<<< HEAD
 #include <linux/power_supply.h>
+=======
+#include <mt-plat/charger_type.h>
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif /* CONFIG_USB_PD_WAIT_BC12 */
 #endif
 
@@ -203,6 +207,7 @@ struct tcpc_ops {
 	int (*set_alert_mask)(struct tcpc_device *tcpc, uint32_t mask);
 	int (*get_alert_mask)(struct tcpc_device *tcpc, uint32_t *mask);
 	int (*get_alert_status)(struct tcpc_device *tcpc, uint32_t *alert);
+	int (*get_chip_id)(struct tcpc_device *tcpc, uint32_t *chip_id);
 	int (*get_power_status)(struct tcpc_device *tcpc, uint16_t *pwr_status);
 	int (*get_fault_status)(struct tcpc_device *tcpc, uint8_t *status);
 	int (*get_cc)(struct tcpc_device *tcpc, int *cc1, int *cc2);
@@ -300,7 +305,6 @@ struct tcpc_device {
 	void *drv_data;
 	struct tcpc_desc desc;
 	struct device dev;
-	bool wake_lock_user;
 	uint8_t wake_lock_pd;
 	struct wakeup_source *attach_wake_lock;
 	struct wakeup_source *detach_wake_lock;
@@ -470,11 +474,16 @@ struct tcpc_device {
 #endif /* CONFIG_USB_PD_REV30 */
 #ifdef CONFIG_USB_PD_WAIT_BC12
 	uint8_t pd_wait_bc12_count;
+<<<<<<< HEAD
 	struct power_supply *chg_psy;
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif /* CONFIG_USB_PD_WAIT_BC12 */
 #endif /* CONFIG_USB_POWER_DELIVERY */
 	u8 vbus_level:2;
+#ifdef CONFIG_TCPC_VSAFE0V_DETECT_IC
 	bool vbus_safe0v;
+#endif	/* CONFIG_TCPC_VSAFE0V_DETECT_IC */
 	bool vbus_present;
 	u8 irq_enabled:1;
 	u8 pd_inited_flag:1; /* MTK Only */

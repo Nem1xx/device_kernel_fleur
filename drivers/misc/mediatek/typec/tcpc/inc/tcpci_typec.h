@@ -41,6 +41,10 @@ extern int tcpc_typec_change_role(
 
 #ifdef CONFIG_USB_POWER_DELIVERY
 extern int tcpc_typec_handle_pe_pr_swap(struct tcpc_device *tcpc);
+<<<<<<< HEAD
+=======
+extern inline int typec_pd_start_entry(struct tcpc_device *tcpc);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #endif /* CONFIG_USB_POWER_DELIVERY */
 
 #ifdef CONFIG_TYPEC_CAP_ROLE_SWAP

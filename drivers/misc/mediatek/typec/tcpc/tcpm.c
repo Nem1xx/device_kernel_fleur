@@ -157,6 +157,7 @@ uint8_t tcpm_inquire_typec_local_rp(struct tcpc_device *tcpc)
 	return tcpc->typec_local_rp_level;
 }
 
+<<<<<<< HEAD
 int tcpm_typec_set_wake_lock(struct tcpc_device *tcpc, bool user_lock)
 {
 	int ret;
@@ -170,6 +171,8 @@ int tcpm_typec_set_wake_lock(struct tcpc_device *tcpc, bool user_lock)
 	return ret;
 }
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 int tcpm_typec_set_usb_sink_curr(struct tcpc_device *tcpc, int curr)
 {
 	bool force_sink_vbus = true;
@@ -299,42 +302,82 @@ bool tcpm_inquire_pd_connected(struct tcpc_device *tcpc)
 	return pd_port->pe_data.pd_connected;
 }
 
+<<<<<<< HEAD
 bool tcpm_inquire_pd_prev_connected(struct tcpc_device *tcpc)
+=======
+bool tcpm_inquire_pd_prev_connected(
+	struct tcpc_device *tcpc)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	struct pd_port *pd_port = &tcpc->pd_port;
 
 	return pd_port->pe_data.pd_prev_connected;
 }
 
+<<<<<<< HEAD
 uint8_t tcpm_inquire_pd_data_role(struct tcpc_device *tcpc)
+=======
+uint8_t tcpm_inquire_pd_data_role(
+	struct tcpc_device *tcpc)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	struct pd_port *pd_port = &tcpc->pd_port;
 
 	return pd_port->data_role;
 }
 
+<<<<<<< HEAD
 uint8_t tcpm_inquire_pd_power_role(struct tcpc_device *tcpc)
+=======
+uint8_t tcpm_inquire_pd_power_role(
+	struct tcpc_device *tcpc)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	struct pd_port *pd_port = &tcpc->pd_port;
 
 	return pd_port->power_role;
 }
 
+<<<<<<< HEAD
 uint8_t tcpm_inquire_pd_vconn_role(struct tcpc_device *tcpc)
 {
 	struct pd_port *pd_port = &tcpc->pd_port;
+=======
+uint8_t tcpm_inquire_pd_state_curr(
+	struct tcpc_device *tcpc)
+{
+	struct pd_port *pd_port = &tcpc->pd_port;
+
+	return pd_port->pe_state_curr;
+}
+
+uint8_t tcpm_inquire_pd_vconn_role(
+	struct tcpc_device *tcpc)
+{
+	struct pd_port *pd_port = &tcpc->pd_port;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	return pd_port->vconn_role;
 }
 
+<<<<<<< HEAD
 uint8_t tcpm_inquire_pd_pe_ready(struct tcpc_device *tcpc)
+=======
+uint8_t tcpm_inquire_pd_pe_ready(
+	struct tcpc_device *tcpc)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	struct pd_port *pd_port = &tcpc->pd_port;
 
 	return pd_port->pe_data.pe_ready;
 }
 
+<<<<<<< HEAD
 uint8_t tcpm_inquire_cable_current(struct tcpc_device *tcpc)
+=======
+uint8_t tcpm_inquire_cable_current(
+	struct tcpc_device *tcpc)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	struct pd_port *pd_port = &tcpc->pd_port;
 

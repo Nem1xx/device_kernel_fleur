@@ -31,6 +31,10 @@ struct pd_event {
 
 struct pd_msg *pd_alloc_msg(struct tcpc_device *tcpc);
 void pd_free_msg(struct tcpc_device *tcpc, struct pd_msg *pd_msg);
+<<<<<<< HEAD
+=======
+bool pd_is_msg_empty(struct tcpc_device *tcpc);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 bool pd_get_event(struct tcpc_device *tcpc, struct pd_event *pd_event);
 bool pd_put_event(struct tcpc_device *tcpc,

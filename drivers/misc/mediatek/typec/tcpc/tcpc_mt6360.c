@@ -2799,6 +2799,14 @@ MODULE_VERSION(MT6360_DRV_VERSION);
  *	(1) Mask vSafe0V IRQ before entering low power mode
  *	(2) AUTOIDLE enable
  *	(3) Reset Protocol FSM and clear RX alerts twice before clock gating
+<<<<<<< HEAD
+=======
+ *
+ * 2.0.4_MTK
+ *	(1) support mt6360 pd discard retry
+ *	(2) fix system busy when rx pending2
+ *	(3) handle mask alert event when unmask irq
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
  *
  * 2.0.3_MTK
  *	(1) Single Rp as Attatched.SRC for Ellisys TD.4.9.4

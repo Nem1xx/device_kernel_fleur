@@ -847,9 +847,12 @@ extern bool tcpm_inquire_cc_polarity(struct tcpc_device *tcpc);
 extern uint8_t tcpm_inquire_typec_attach_state(struct tcpc_device *tcpc);
 extern uint8_t tcpm_inquire_typec_role(struct tcpc_device *tcpc);
 extern uint8_t tcpm_inquire_typec_local_rp(struct tcpc_device *tcpc);
+<<<<<<< HEAD
 
 extern int tcpm_typec_set_wake_lock(
 	struct tcpc_device *tcpc, bool user_lock);
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 extern int tcpm_typec_set_usb_sink_curr(
 	struct tcpc_device *tcpc, int curr);
@@ -887,6 +890,12 @@ extern uint8_t tcpm_inquire_pd_data_role(
 
 extern uint8_t tcpm_inquire_pd_power_role(
 	struct tcpc_device *tcpc);
+<<<<<<< HEAD
+=======
+
+extern uint8_t tcpm_inquire_pd_state_curr(
+	struct tcpc_device *tcpc);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 extern uint8_t tcpm_inquire_pd_vconn_role(
 	struct tcpc_device *tcpc);
@@ -1395,6 +1404,15 @@ static inline uint8_t tcpm_inquire_pd_data_role(
 
 static inline uint8_t tcpm_inquire_pd_power_role(
 	struct tcpc_device *tcpc)
+<<<<<<< HEAD
+=======
+{
+	return 0;
+}
+
+static inline uint8_t tcpm_inquire_pd_state_curr(
+	struct tcpc_device *tcpc)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	return 0;
 }

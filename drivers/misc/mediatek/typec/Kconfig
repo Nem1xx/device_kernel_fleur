@@ -47,6 +47,7 @@ config MTK_USB_TYPEC_U3_MUX_V2
 	  It is more easily for customer to manager and add mux
 	  module driver.
 
+<<<<<<< HEAD
 config OCP96011_I2C
 	tristate "analog audio switch"
 	depends on I2C
@@ -55,4 +56,33 @@ config OCP96011_I2C
 	  multimedia switch. The OCP96011 supports USB2.0
 	  signal, analog audio, sideband use wires and analog
 	  microphone signal.
+=======
+config TCPC_MT6360
+	bool "MediaTek MT6360 TypeC port Controller Driver"
+	depends on TCPC_CLASS
+	help
+	  Say Y to enable MediaTek MT6370
+	  TypeC port Controller
+	  Also Support Power Delivery
+	  Say N to disable
+
+config MTK_TYPEC_WATER_DETECT
+	bool "Water detection function for type-c connector"
+	depends on TCPC_CLASS
+	help
+	  Say Yes to enable water detection on type-c connector.
+	  If water is detected on the connector, it will show
+	  warning to notify end user.
+	  If unsure, say N.
+
+config MTK_TYPEC_WATER_DETECT_BY_PCB
+	bool "Let PCB decides enabling water detection or not"
+	depends on MTK_TYPEC_WATER_DETECT
+	help
+	  Query GPIO on PCB to judge whether type-c water detection
+	  need to be enabled.
+	  Say Yes to let PCB decides enabling water detection or not.
+	  If unsure, say N.
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 source "drivers/misc/mediatek/typec/tcpc/Kconfig"

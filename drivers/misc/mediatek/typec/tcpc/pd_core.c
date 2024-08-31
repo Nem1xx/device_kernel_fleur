@@ -718,6 +718,22 @@ void pd_reset_svid_data(struct pd_port *pd_port)
 	}
 }
 
+<<<<<<< HEAD
+=======
+void pd_free_unexpected_event(struct pd_port *pd_port)
+{
+#ifdef CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG
+	struct pe_data *pe_data = &pd_port->pe_data;
+
+	if (!pe_data->pd_unexpected_event_pending)
+		return;
+
+	pe_data->pd_unexpected_event_pending = false;
+	pd_free_event(pd_port->tcpc, &pe_data->pd_unexpected_event);
+#endif	/* CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG */
+}
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #define PE_RESET_MSG_ID(pd_port, sop)	{ \
 	pd_port->pe_data.msg_id_tx[sop] = 0; \
 	pd_port->pe_data.msg_id_rx[sop] = PD_MSG_ID_MAX; \
@@ -773,6 +789,10 @@ int pd_reset_protocol_layer(struct pd_port *pd_port, bool sop_only)
 
 int pd_set_rx_enable(struct pd_port *pd_port, uint8_t enable)
 {
+<<<<<<< HEAD
+=======
+	pd_port->rx_cap = enable;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	return tcpci_set_rx_enable(pd_port->tcpc, enable);
 }
 
@@ -1328,6 +1348,33 @@ void pd_lock_msg_output(struct pd_port *pd_port)
 	pd_port->msg_output_lock = true;
 
 	pd_dbg_info_lock();
+}
+
+void pd_add_miss_msg(struct pd_port *pd_port,struct pd_event *pd_event,
+				uint8_t msg)
+{
+	struct pd_msg *pd_msg = pd_event->pd_msg;
+	struct pd_msg * miss_msg = NULL;
+	uint8_t sop_type = 0;
+	struct pd_event evt = {
+		.event_type = PD_EVT_CTRL_MSG,
+		.msg = msg,
+		.pd_msg = NULL,
+	};
+	if (pd_msg != NULL) {
+		sop_type = pd_msg->frame_type;
+	}
+	pd_put_event(pd_port->tcpc,&evt,true);
+	miss_msg = pd_alloc_msg(pd_port->tcpc);
+	if (miss_msg == NULL) {
+		return;
+	}
+	if (pd_msg != NULL)
+		memcpy(miss_msg,pd_msg,sizeof(struct pd_msg));
+
+	pd_put_pd_msg_event(pd_port->tcpc,miss_msg);
+	pd_port->pe_data.msg_id_rx[sop_type]--;
+	return;
 }
 
 void pd_unlock_msg_output(struct pd_port *pd_port)

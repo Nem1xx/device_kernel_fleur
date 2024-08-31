@@ -153,7 +153,11 @@ static inline bool pd_process_data_msg_bist(
 	case BDO_MODE_CARRIER1:
 	case BDO_MODE_CARRIER3:
 	case BDO_MODE_EYE:
+<<<<<<< HEAD
 #endif /* NEVER */
+=======
+#endif
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		PE_DBG("Unsupport BIST\n");
 		pd_noitfy_pe_bist_mode(pd_port, PD_BIST_MODE_DISABLE);
 		return false;
@@ -531,10 +535,17 @@ static inline bool pd_check_rx_pending(struct pd_port *pd_port)
 
 	if (alert & TCPC_REG_ALERT_RX_STATUS) {
 		PE_INFO("rx_pending\n");
+<<<<<<< HEAD
 #ifndef CONFIG_USB_PD_ONLY_PRINT_SYSTEM_BUSY
 		pd_enable_timer(pd_port, PD_TIMER_SENDER_RESPONSE);
 #endif
 		return true;
+=======
+		pending = true;
+	} else if (!pd_is_msg_empty(tcpc)) {
+		PE_INFO("rx_pending2\n");
+		pending = true;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 
 	return false;

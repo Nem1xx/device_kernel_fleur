@@ -122,6 +122,47 @@ void pe_bist_carrier_mode_2_exit(struct pd_port *pd_port)
 	pd_disable_bist_mode2(pd_port);
 }
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG
+void pe_unexpected_tx_wait_entry(struct pd_port *pd_port)
+{
+	struct tcpc_device __maybe_unused *tcpc = pd_port->tcpc;
+
+	PE_INFO("##$$123\n");
+	PE_STATE_DISCARD_AND_UNEXPECTED(pd_port);
+	pd_enable_timer(pd_port, PD_TIMER_SENDER_RESPONSE);
+}
+
+void pe_send_soft_reset_tx_wait_entry(struct pd_port *pd_port)
+{
+	struct tcpc_device __maybe_unused *tcpc = pd_port->tcpc;
+
+	PE_INFO("##$$124\n");
+	PE_STATE_DISCARD_AND_UNEXPECTED(pd_port);
+	pd_enable_timer(pd_port, PD_TIMER_SENDER_RESPONSE);
+}
+
+void pe_recv_soft_reset_tx_wait_entry(struct pd_port *pd_port)
+{
+	struct tcpc_device __maybe_unused *tcpc = pd_port->tcpc;
+
+	PE_INFO("##$$125\n");
+	PE_STATE_DISCARD_AND_UNEXPECTED(pd_port);
+	pd_enable_timer(pd_port, PD_TIMER_SENDER_RESPONSE);
+}
+
+void pe_send_soft_reset_standby_entry(struct pd_port *pd_port)
+{
+	struct tcpc_device __maybe_unused *tcpc = pd_port->tcpc;
+
+	PE_INFO("##$$126\n");
+	PE_STATE_DISCARD_AND_UNEXPECTED(pd_port);
+	pd_put_dpm_ack_event(pd_port);
+}
+#endif	/* CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG */
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 /*
  * Policy Engine Share State Activity
  */
@@ -165,6 +206,13 @@ void pe_power_ready_entry(struct pd_port *pd_port)
 	pd_port->pe_data.renegotiation_count = 0;
 #endif	/* CONFIG_USB_PD_RENEGOTIATION_COUNTER */
 
+<<<<<<< HEAD
+=======
+#ifdef CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG
+	pd_port->pe_data.pd_sent_ams_init_cmd = true;
+#endif /* CONFIG_USB_PD_DISCARD_AND_UNEXPECT_MSG */
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (pd_check_rev30(pd_port))
 		rx_cap = pe30_power_ready_entry(pd_port);
 	else
