@@ -11,5 +11,4 @@
 # GNU General Public License for more details.
 #
 
-obj-y += CHIP.o
-CHIP-y := mtk_chip.o
+obj-y += imx355_ultra_ofilm_mipi_raw.o
