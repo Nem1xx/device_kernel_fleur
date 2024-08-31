@@ -75,4 +75,8 @@ void teei_cpus_write_lock(void);
 void teei_cpus_write_unlock(void);
 
 int teei_set_switch_pri(unsigned long policy);
+<<<<<<< HEAD:drivers/tee/teei/400/tz_driver/include/teei_client_main.h
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/tz_driver/include/teei_client_main.h
 #endif /* __TEEI_CLIENT_MAIN_H__ */

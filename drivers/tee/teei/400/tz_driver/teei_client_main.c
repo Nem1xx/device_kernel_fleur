@@ -71,11 +71,18 @@ DECLARE_SEMA(pm_sema, 0);
 DECLARE_COMPLETION(boot_decryto_lock);
 
 #ifndef CONFIG_MICROTRUST_DYNAMIC_CORE
-#define TZ_PREFER_BIND_CORE (6)
+#define TZ_PREFER_BIND_CORE (7)
 #endif
 
+<<<<<<< HEAD:drivers/tee/teei/400/tz_driver/teei_client_main.c
 #define TEEI_RT_POLICY			(0x01)
 #define TEEI_NORMAL_POLICY		(0x02)
+=======
+#define TEEI_RT_POLICY		(0x01)
+#define TEEI_NORMAL_POLICY	(0x02)
+
+#define MAX_DRV_UUIDS 30
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/tz_driver/teei_client_main.c
 
 /* ARMv8.2 for CA55, CA75 etc */
 static int teei_cpu_id_arm82[] = {
@@ -186,7 +193,10 @@ static void *teei_cpu_write_owner;
 
 int teei_set_switch_pri(unsigned long policy)
 {
+<<<<<<< HEAD:drivers/tee/teei/400/tz_driver/teei_client_main.c
 #ifdef DYNAMIC_SET_PRIORITY
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/tz_driver/teei_client_main.c
 	struct sched_param param = {.sched_priority = 50 };
 	int retVal = 0;
 
@@ -212,9 +222,12 @@ int teei_set_switch_pri(unsigned long policy)
 	}
 
 	return retVal;
+<<<<<<< HEAD:drivers/tee/teei/400/tz_driver/teei_client_main.c
 #else
 	return 0;
 #endif
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/tz_driver/teei_client_main.c
 }
 
 void teei_cpus_read_lock(void)
@@ -231,18 +244,28 @@ void teei_cpus_read_unlock(void)
 
 void teei_cpus_write_lock(void)
 {
+<<<<<<< HEAD:drivers/tee/teei/400/tz_driver/teei_client_main.c
 #ifdef ISEE_FP_SINGLE_CHANNEL
 	cpus_write_lock();
 	teei_cpu_write_owner = current;
 #endif
+=======
+	cpus_write_lock();
+	teei_cpu_write_owner = current;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/tz_driver/teei_client_main.c
 }
 
 void teei_cpus_write_unlock(void)
 {
+<<<<<<< HEAD:drivers/tee/teei/400/tz_driver/teei_client_main.c
 #ifdef ISEE_FP_SINGLE_CHANNEL
 	teei_cpu_write_owner = NULL;
 	cpus_write_unlock();
 #endif
+=======
+	teei_cpu_write_owner = NULL;
+	cpus_write_unlock();
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/tz_driver/teei_client_main.c
 }
 
 struct tz_driver_state *get_tz_drv_state(void)
@@ -686,13 +709,16 @@ static long teei_config_ioctl(struct file *file,
 
 			TEEI_BOOT_FOOTPRINT("TEEI start to load driver TAs");
 
+<<<<<<< HEAD:drivers/tee/teei/400/tz_driver/teei_client_main.c
+=======
+			teei_ta_flags = param.flag;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/tz_driver/teei_client_main.c
 			if (param.uuid_count > MAX_DRV_UUIDS) {
 				IMSG_ERROR("TEEI uuid_count is invalid(%u)!\n",
 					(unsigned int)(param.uuid_count));
 				return -EINVAL;
 			}
 
-			teei_ta_flags = param.flag;
 			for (i = 0; i < param.uuid_count; i++) {
 				if ((teei_ta_flags >> i) & (0x01))
 					tz_load_ta_by_str(param.uuids[i]);

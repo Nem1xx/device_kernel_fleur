@@ -132,6 +132,7 @@ static long fp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 			return -EFAULT;
 		}
 
+<<<<<<< HEAD:drivers/tee/teei/400/teei_fp/fp_func.c
 #ifdef DYNAMIC_SET_PRIORITY
 		teei_cpus_write_lock();
 #endif
@@ -141,6 +142,13 @@ static long fp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 #ifdef DYNAMIC_SET_PRIORITY
 		teei_cpus_write_unlock();
 #endif
+=======
+		teei_cpus_write_lock();
+
+		ret  = send_fp_command((void *)arg, args_len + 16);
+
+		teei_cpus_write_unlock();
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/teei_fp/fp_func.c
 
 		if (ret) {
 			IMSG_ERROR("transfer data to ta failed.\n");
@@ -157,11 +165,16 @@ static long fp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 		break;
 	case CMD_TEEI_SET_PRI:
 		ret = teei_set_switch_pri(arg);
+<<<<<<< HEAD:drivers/tee/teei/400/teei_fp/fp_func.c
 		if (ret != 0) {
 			IMSG_ERROR("Failed to teei_set_switch_pri %d\n", ret);
 			up(&fp_api_lock);
 			return ret;
 		}
+=======
+		if (ret != 0)
+			IMSG_ERROR("Failed to teei_set_switch_pri %d\n", ret);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/teei/300/teei_fp/fp_func.c
 		break;
 	default:
 		up(&fp_api_lock);
