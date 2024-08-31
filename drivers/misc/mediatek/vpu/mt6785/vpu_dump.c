@@ -297,7 +297,12 @@ int vpu_dmp_create_locked(int c, struct vpu_request *req,
 	va_start(args, fmt);
 	ret = vsnprintf(d->info, VPU_DMP_INFO_SZ, fmt, args);
 	va_end(args);
+<<<<<<< HEAD
 	if (ret < 0)
+=======
+
+	if (ret < 0) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		pr_info("%s: vsnprintf: %d\n", __func__, ret);
 
 #define VPU_DMP_STATE(a) \

@@ -3281,6 +3281,7 @@ int vpu_get_power(int core, bool secure)
 	mutex_lock(&power_counter_mutex[core]);
 	power_counter[core]++;
 	ret = vpu_boot_up(core, secure);
+
 	mutex_unlock(&power_counter_mutex[core]);
 	LOG_DBG("[vpu_%d/%d] gp + 2\n", core, power_counter[core]);
 	if (ret == POWER_ON_MAGIC) {
@@ -5105,7 +5106,7 @@ int vpu_hw_processing_request(int core_s, struct vpu_request *request)
 			request->buffers,
 			sizeof(struct vpu_buffer) * request->buffer_count);
 
-	LOG_DBG("[vpu_%d]start d2d, %s(%d/%d), %s(%d), %s(%d/%d,%d), %s(%d)\n",
+	LOG_INF("[vpu_%d]start d2d, %s(%d/%d), %s(%d), %s(%d/%d,%d), %s(%d)\n",
 		core,
 		"id/frm", request->algo_id[core], request->frame_magic,
 		"bw", request->power_param.bw,
