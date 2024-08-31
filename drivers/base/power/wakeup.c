@@ -1090,9 +1090,14 @@ static int print_wakeup_source_stats(struct seq_file *m,
 
 	return 0;
 }
+<<<<<<< HEAD
 #endif
 static void *wakeup_sources_stats_seq_start(struct seq_file *m,
 					loff_t *pos)
+=======
+
+static void *wakeup_sources_stats_seq_start(struct seq_file *m, loff_t *pos)
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 {
 	struct wakeup_source *ws;
 	loff_t n = *pos;
@@ -1112,6 +1117,43 @@ static void *wakeup_sources_stats_seq_start(struct seq_file *m,
 
 	return NULL;
 }
+<<<<<<< HEAD
+=======
+
+static void *wakeup_sources_stats_seq_next(struct seq_file *m,
+					void *v, loff_t *pos)
+{
+	struct wakeup_source *ws = v;
+	struct wakeup_source *next_ws = NULL;
+
+	++(*pos);
+
+	list_for_each_entry_continue_rcu(ws, &wakeup_sources, entry) {
+		next_ws = ws;
+		break;
+	}
+
+	return next_ws;
+}
+
+static void wakeup_sources_stats_seq_stop(struct seq_file *m, void *v)
+{
+	int *srcuidx = m->private;
+
+	srcu_read_unlock(&wakeup_srcu, *srcuidx);
+}
+
+/**
+ * wakeup_sources_stats_seq_show - Print wakeup sources statistics information.
+ * @m: seq_file to print the statistics into.
+ * @v: wakeup_source of each iteration
+ */
+static int wakeup_sources_stats_seq_show(struct seq_file *m, void *v)
+{
+	struct wakeup_source *ws = v;
+
+	print_wakeup_source_stats(m, ws);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 static void *wakeup_sources_stats_seq_next(struct seq_file *m,
 					void *v, loff_t *pos)
