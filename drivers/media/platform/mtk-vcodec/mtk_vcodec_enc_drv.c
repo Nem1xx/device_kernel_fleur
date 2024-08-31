@@ -411,9 +411,12 @@ static const struct of_device_id mtk_vcodec_enc_match[] = {
 	{.compatible = "mediatek,mt6833-vcodec-enc",},
 	{.compatible = "mediatek,mt6877-vcodec-enc",},
 	{.compatible = "mediatek,mt6781-vcodec-enc",},
+<<<<<<< HEAD
 	{.compatible = "mediatek,mt6768-vcodec-enc",},
 	{.compatible = "mediatek,mt6785-vcodec-enc",},
 	{.compatible = "mediatek,venc_gcon",},
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	{},
 };
 MODULE_DEVICE_TABLE(of, mtk_vcodec_enc_match);
