@@ -29,6 +29,7 @@ struct ccu_device_s {
 	void __iomem *pmem_base;
 	void __iomem *ddrmem_base;
 	unsigned int irq_num;
+	struct mutex dev_mutex;
 	struct mutex user_mutex;
 	struct mutex ion_client_mutex;
 	struct mutex dev_mutex;

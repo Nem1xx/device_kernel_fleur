@@ -45,7 +45,10 @@
 #define CCU_IPC_IBUF_CAPACITY (1024*5) //4k
 #define CCU_IPC_OBUF_CAPACITY (1024*2) //1k
 
+<<<<<<< HEAD
 #define CCU_HEADER_NUM (20)
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 #define CCU_STRUCT_SIZE_CAPACITY (6)
 
 #define MMU_ENABLE_BIT           0x33//ccu Cache to EMI enable

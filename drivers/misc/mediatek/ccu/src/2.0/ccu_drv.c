@@ -312,7 +312,12 @@ static int ccu_open(struct inode *inode, struct file *flip)
 {
 	int ret = 0, i;
 
+<<<<<<< HEAD
 	struct ccu_user_s *user = NULL;
+=======
+	struct ccu_user_s *user;
+	mutex_lock(&g_ccu_device->dev_mutex);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	mutex_lock(&g_ccu_device->dev_mutex);
 
@@ -350,12 +355,17 @@ static int ccu_open(struct inode *inode, struct file *flip)
 	ccu_ion_init();
 
 	for (i = 0; i < CCU_IMPORT_BUF_NUM; i++)
+<<<<<<< HEAD
 		import_buffer_handle[i] = (struct ion_handle *)
 					  CCU_IMPORT_BUF_UNDEF;
 
 	LOG_INF_MUST("%s-\n",
 		__func__);
 
+=======
+		import_buffer_handle[i] =
+		(struct ion_handle *)CCU_IMPORT_BUF_UNDEF;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	mutex_unlock(&g_ccu_device->dev_mutex);
 
 	return ret;
@@ -555,7 +565,52 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd, unsigned long arg)
 			LOG_ERR(
 			"CCU_IOCTL_SET_RUN_INPUT copy_from_user failed: %d\n",
 			ret);
+<<<<<<< HEAD
 			break;
+=======
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+		ret = ccu_push_command_to_queue(user, cmd);
+		break;
+	}
+	case CCU_IOCTL_DEQUE_COMMAND:
+	{
+		struct ccu_cmd_s *cmd = 0;
+
+		ret = ccu_pop_command_from_queue(user, &cmd);
+		if (ret != 0) {
+			LOG_ERR(
+			"[DEQUE_COMMAND] pop command failed, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+		ret = copy_to_user((void *)arg, cmd,
+			sizeof(struct ccu_cmd_s));
+		if (ret != 0) {
+			LOG_ERR(
+			"[DEQUE_COMMAND] copy_to_user failed, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+		ret = ccu_free_command(cmd);
+		if (ret != 0) {
+			LOG_ERR(
+			"[DEQUE_COMMAND] free command, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+		break;
+	}
+	case CCU_IOCTL_FLUSH_COMMAND:
+	{
+		ret = ccu_flush_commands_from_queue(user);
+		if (ret != 0) {
+			LOG_ERR(
+			"[FLUSH_COMMAND] flush command failed, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		}
 
 		ret = ccu_run(&ccu_run_info);
@@ -988,6 +1043,7 @@ static int ccu_release(struct inode *inode, struct file *flip)
 
 	mutex_lock(&g_ccu_device->dev_mutex);
 
+<<<<<<< HEAD
 	LOG_INF_MUST("%s pid:%d tid:%d cnt:%d+\n",
 		__func__, user->open_pid, user->open_tgid, _user_count);
 	ccu_delete_user(user);
@@ -998,6 +1054,9 @@ static int ccu_release(struct inode *inode, struct file *flip)
 		mutex_unlock(&g_ccu_device->dev_mutex);
 		return 0;
 	}
+=======
+	LOG_INF_MUST("%s +", __func__);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	ccu_force_powerdown();
 
@@ -1022,6 +1081,84 @@ static int ccu_release(struct inode *inode, struct file *flip)
 	LOG_INF_MUST("%s -", __func__);
 
 	mutex_unlock(&g_ccu_device->dev_mutex);
+<<<<<<< HEAD
+=======
+
+	return 0;
+}
+
+
+/****************************************************************************
+ *
+ ***************************************************************************/
+static int ccu_mmap(struct file *flip, struct vm_area_struct *vma)
+{
+	unsigned long length = 0;
+	unsigned long pfn = 0x0;
+
+	length = (vma->vm_end - vma->vm_start);
+	/*  */
+	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+	pfn = vma->vm_pgoff << PAGE_SHIFT;
+
+	LOG_DBG
+	("CCU_mmap: vm_pgoff(0x%lx),pfn(0x%lx),phy(0x%lx)\n"
+	vma->vm_pgoff, pfn, vma->vm_pgoff << PAGE_SHIFT);
+	LOG_DBG
+	("vm_start(0x%lx),vm_end(0x%lx),length(0x%lx)\n",
+	vma->vm_start, vma->vm_end, length);
+
+	/*if (pfn >= CCU_REG_BASE_HW) {*/
+
+	if (pfn == (ccu_hw_base - CCU_HW_OFFSET)) {
+		if (length > PAGE_SIZE) {
+			LOG_ERR
+			("mmap error :module(0x%lx),len(0x%lx),CCU_HW(0x%x)!\n",
+			pfn, length, 0x4000);
+			return -EAGAIN;
+		}
+	} else if (pfn == CCU_CAMSYS_BASE) {
+		if (length > CCU_CAMSYS_SIZE) {
+			LOG_ERR
+		    ("mmap error :module(0x%lx),len(0x%lx),CCU_CAMSYS(0x%x)!\n",
+		     pfn, length, 0x4000);
+			return -EAGAIN;
+		}
+	} else if (pfn == CCU_PMEM_BASE) {
+		if (length > CCU_PMEM_SIZE) {
+			LOG_ERR
+		    ("mmap error :module(0x%lx),len(0x%lx),CCU_PMEM(0x%x)!\n",
+		     pfn, length, 0x4000);
+			return -EAGAIN;
+		}
+	} else if (pfn == CCU_DMEM_BASE) {
+		if (length > CCU_DMEM_SIZE) {
+			LOG_ERR
+		    ("mmap error :module(0x%lx),len(0x%lx),CCU_DMEM(0x%x)!\n",
+		     pfn, length, 0x4000);
+			return -EAGAIN;
+		}
+	} else {
+		LOG_ERR("Illegal starting HW addr for mmap!\n");
+		return -EAGAIN;
+	}
+
+	if (remap_pfn_range
+	    (vma, vma->vm_start, vma->vm_pgoff,
+	    vma->vm_end - vma->vm_start,
+	     vma->vm_page_prot)) {
+		LOG_ERR("remap_pfn_range\n");
+		return -EAGAIN;
+	}
+	LOG_DBG("map_check_1\n");
+
+	/*
+	 * } else {
+	 *	LOG_DBG("map_check_2\n");
+	 *	return ccu_mmap_hw(flip, vma);
+	 *}
+	 */
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 
 	return 0;
 }
@@ -1344,7 +1481,10 @@ static int __init CCU_INIT(void)
 	INIT_LIST_HEAD(&g_ccu_device->user_list);
 	mutex_init(&g_ccu_device->user_mutex);
 	mutex_init(&g_ccu_device->dev_mutex);
+<<<<<<< HEAD
 	mutex_init(&g_ccu_device->clk_mutex);
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	mutex_init(&g_ccu_device->ion_client_mutex);
 	init_waitqueue_head(&g_ccu_device->cmd_wait);
 

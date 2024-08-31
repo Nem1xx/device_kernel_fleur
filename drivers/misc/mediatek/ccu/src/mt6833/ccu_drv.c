@@ -854,6 +854,26 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd,
 
 		mutex_unlock(&g_ccu_device->dev_mutex);
 		return rc;
+<<<<<<< HEAD
+=======
+	}
+
+	case CCU_WRITE_REGISTER:
+	{
+		struct ccu_reg_s reg;
+
+		ret = copy_from_user(&reg,
+			(void *)arg, sizeof(struct ccu_reg_s));
+		if (ret != 0) {
+			LOG_ERR(
+			"CCU_WRITE_REGISTER copy_from_user failed: %d\n",
+			ret);
+			break;
+		}
+
+		ccu_write_info_reg(reg.reg_no, reg.reg_val);
+		break;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 
 	case CCU_READ_STRUCT_SIZE:

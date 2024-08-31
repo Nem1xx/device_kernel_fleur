@@ -318,6 +318,7 @@ static int ccu_open(struct inode *inode, struct file *flip)
 {
 	int ret = 0, i;
 
+<<<<<<< HEAD
 	struct ccu_user_s *user = NULL;
 	struct CcuMemHandle handle = {0};
 
@@ -327,6 +328,14 @@ static int ccu_open(struct inode *inode, struct file *flip)
 		__func__, current->pid, current->tgid, _user_count);
 
 	ret = ccu_create_user(&user);
+=======
+	struct ccu_user_s *user;
+
+	mutex_lock(&g_ccu_device->dev_mutex);
+
+	_clk_count = 0;
+	ccu_create_user(&user);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	if (IS_ERR_OR_NULL(user)) {
 		LOG_ERR("fail to create user\n");
 		mutex_unlock(&g_ccu_device->dev_mutex);
@@ -367,6 +376,8 @@ static int ccu_open(struct inode *inode, struct file *flip)
 
 	LOG_INF_MUST("%s-\n",
 		__func__);
+
+	mutex_unlock(&g_ccu_device->dev_mutex);
 
 	mutex_unlock(&g_ccu_device->dev_mutex);
 
@@ -540,6 +551,9 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd,
 	if ((cmd != CCU_IOCTL_WAIT_IRQ) && (cmd != CCU_IOCTL_WAIT_AF_IRQ))
 		mutex_lock(&g_ccu_device->dev_mutex);
 
+	if ((cmd != CCU_IOCTL_WAIT_IRQ) && (cmd != CCU_IOCTL_WAIT_AF_IRQ))
+		mutex_lock(&g_ccu_device->dev_mutex);
+
 	LOG_DBG("%s+, cmd:%d\n", __func__, cmd);
 
 	if ((cmd != CCU_IOCTL_SET_POWER) && (cmd != CCU_IOCTL_FLUSH_LOG) &&
@@ -548,7 +562,11 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd,
 		(cmd != CCU_IOCTL_LOAD_CCU_BIN)) {
 		powert_stat = ccu_query_power_status();
 		if (powert_stat == 0) {
+<<<<<<< HEAD
 			LOG_WARN("ccuk: ioctl(%d) without powered on\n", cmd);
+=======
+			LOG_WARN("ccuk: ioctl without powered on\n");
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 			if (cmd != CCU_IOCTL_WAIT_AF_IRQ)
 				mutex_unlock(&g_ccu_device->dev_mutex);
 			return -EFAULT;
@@ -584,9 +602,78 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd,
 		ret = ccu_run(&ccu_run_info);
 		break;
 	}
+<<<<<<< HEAD
 	case CCU_IOCTL_WAIT_IRQ: {
 		if (copy_from_user(&IrqInfo, (void *)arg,
 				   sizeof(struct CCU_WAIT_IRQ_STRUCT)) == 0) {
+=======
+
+	case CCU_IOCTL_ENQUE_COMMAND:
+	{
+		struct ccu_cmd_s *cmd = 0;
+
+		/*allocate ccu_cmd_st_list instead of ccu_cmd_st*/
+		ccu_alloc_command(&cmd);
+		ret = copy_from_user(
+			cmd, (void *)arg, sizeof(struct ccu_cmd_s));
+		if (ret != 0) {
+			LOG_ERR(
+			"[ENQUE_COMMAND] copy_from_user failed, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+
+		ret = ccu_push_command_to_queue(user, cmd);
+		break;
+	}
+
+	case CCU_IOCTL_DEQUE_COMMAND:
+	{
+		struct ccu_cmd_s *cmd = 0;
+
+		ret = ccu_pop_command_from_queue(user, &cmd);
+		if (ret != 0) {
+			LOG_ERR(
+			"[DEQUE_COMMAND] pop command failed, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+		ret = copy_to_user((void *)arg, cmd, sizeof(struct ccu_cmd_s));
+		if (ret != 0) {
+			LOG_ERR(
+			"[DEQUE_COMMAND] copy_to_user failed, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+		ret = ccu_free_command(cmd);
+		if (ret != 0) {
+			LOG_ERR(
+			"[DEQUE_COMMAND] free command, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+
+		break;
+	}
+
+	case CCU_IOCTL_FLUSH_COMMAND:
+	{
+		ret = ccu_flush_commands_from_queue(user);
+		if (ret != 0) {
+			LOG_ERR(
+			"[FLUSH_COMMAND] flush command failed, ret=%d\n", ret);
+			mutex_unlock(&g_ccu_device->dev_mutex);
+			return -EFAULT;
+		}
+
+		break;
+	}
+
+	case CCU_IOCTL_WAIT_IRQ:
+	{
+		if (copy_from_user(&IrqInfo,
+			(void *)arg, sizeof(struct CCU_WAIT_IRQ_STRUCT)) == 0) {
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 			if ((IrqInfo.Type >= CCU_IRQ_TYPE_AMOUNT)
 			    || (IrqInfo.Type < 0)) {
 				ret = -EFAULT;
@@ -616,6 +703,7 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd,
 
 		break;
 	}
+<<<<<<< HEAD
 	case CCU_IOCTL_WAIT_AF_IRQ: {
 		if (copy_from_user(&IrqInfo, (void *)arg,
 				   sizeof(struct CCU_WAIT_IRQ_STRUCT)) == 0) {
@@ -661,6 +749,11 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd,
 		break;
 	}
 	case CCU_IOCTL_FLUSH_LOG: {
+=======
+
+	case CCU_IOCTL_FLUSH_LOG:
+	{
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 		ccu_flushLog(0, NULL);
 		break;
 	}
@@ -860,6 +953,7 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd,
 
 	case CCU_IOCTL_PRINT_REG:
 	{
+<<<<<<< HEAD
 		uint32_t *Reg;
 
 		Reg = kzalloc(sizeof(uint8_t)*
@@ -880,6 +974,13 @@ static long ccu_ioctl(struct file *flip, unsigned int cmd,
 		}
 		kfree(Reg);
 		break;
+=======
+		int regToRead = (int)arg;
+		int rc = ccu_read_info_reg(regToRead);
+
+		mutex_unlock(&g_ccu_device->dev_mutex);
+		return rc;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	}
 
 	case CCU_IOCTL_PRINT_SRAM_LOG:
@@ -1083,6 +1184,12 @@ static int ccu_release(struct inode *inode, struct file *flip)
 		return 0;
 	}
 
+<<<<<<< HEAD
+=======
+	mutex_lock(&g_ccu_device->dev_mutex);
+
+	LOG_INF_MUST("%s +\n", __func__);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	ccu_force_powerdown();
 
 	for (i = 0; i < CCU_IMPORT_BUF_NUM; i++) {
@@ -1104,6 +1211,8 @@ static int ccu_release(struct inode *inode, struct file *flip)
 	ccu_ion_uninit();
 
 	LOG_INF_MUST("%s -", __func__);
+
+	mutex_unlock(&g_ccu_device->dev_mutex);
 
 	mutex_unlock(&g_ccu_device->dev_mutex);
 
@@ -1432,6 +1541,11 @@ static int __init CCU_INIT(void)
 
 	INIT_LIST_HEAD(&g_ccu_device->user_list);
 	mutex_init(&g_ccu_device->user_mutex);
+<<<<<<< HEAD
+=======
+	mutex_init(&g_ccu_device->clk_mutex);
+	mutex_init(&g_ccu_device->dev_mutex);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 	mutex_init(&g_ccu_device->ion_client_mutex);
 	mutex_init(&g_ccu_device->dev_mutex);
 	mutex_init(&g_ccu_device->clk_mutex);
