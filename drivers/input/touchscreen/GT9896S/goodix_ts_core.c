@@ -770,7 +770,7 @@ static DEVICE_ATTR(irq_info, S_IRUGO | S_IWUSR | S_IWGRP,
 		   gt9896s_ts_irq_info_show, gt9896s_ts_irq_info_store);
 static DEVICE_ATTR(reg_rw, S_IRUGO | S_IWUSR | S_IWGRP,
 		   gt9896s_ts_reg_rw_show, gt9896s_ts_reg_rw_store);
-
+#ifdef GT_SYSFS_ATTR
 static struct attribute *sysfs_attrs[] = {
 	&dev_attr_extmod_info.attr,
 	&dev_attr_driver_info.attr,
