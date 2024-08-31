@@ -414,7 +414,10 @@ static long monitor_hang_ioctl(struct file *file, unsigned int cmd,
 		reboot_flag = true;
 		hang_detect_counter = 5;
 		hd_timeout = 5;
+<<<<<<< HEAD:drivers/misc/mediatek/monitor_hang/monitor_hang.c
 		hd_detect_enabled = true;
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/aee/aed/monitor_hang.c
 		pr_info("hang_detect: %s set reboot command.\n", current->comm);
 		return ret;
 	}

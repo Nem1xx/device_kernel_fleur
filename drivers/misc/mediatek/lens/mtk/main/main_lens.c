@@ -118,6 +118,8 @@ static struct stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
 	 LC898212XDAF_Release, LC898212XDAF_GetFileName, NULL},
 	{1, AFDRV_DW9800WAF, DW9800WAF_SetI2Cclient, DW9800WAF_Ioctl,
 	DW9800WAF_Release, DW9800WAF_GetFileName, NULL},
+	{1, AFDRV_DW9800VAF, DW9800VAF_SetI2Cclient, DW9800VAF_Ioctl,
+	DW9800VAF_Release, DW9800VAF_GetFileName, NULL},
 	{1, AFDRV_DW9814AF, DW9814AF_SetI2Cclient, DW9814AF_Ioctl,
 	 DW9814AF_Release, DW9814AF_GetFileName, NULL},
 	{1, AFDRV_DW9839AF, DW9839AF_SetI2Cclient, DW9839AF_Ioctl,
@@ -187,12 +189,141 @@ static void camaf_power_init(void)
 		kd_node = lens_device->of_node;
 		lens_device->of_node = node;
 
+<<<<<<< HEAD:drivers/misc/mediatek/lens/mtk/main/main_lens.c
 		if (vcamaf_ldo == NULL) {
 			vcamaf_ldo = regulator_get(lens_device, CAMAF_PMIC);
 			if (IS_ERR(vcamaf_ldo)) {
 				ret = PTR_ERR(vcamaf_ldo);
 				vcamaf_ldo = NULL;
 				LOG_INF("cannot get regulator\n");
+=======
+static int af_pinctrl_set(int pin, int state)
+{
+	int ret = 0;
+
+	LOG_INF("+");
+	if (af_pinctrl == NULL) {
+		LOG_INF("pinctrl is not available\n");
+		return -1;
+	}
+
+	if (af_hwen_high == NULL) {
+		LOG_INF("af_hwen_high is not available\n");
+		return -1;
+	}
+
+	if (af_hwen_low == NULL) {
+		LOG_INF("af_hwen_low is not available\n");
+		return -1;
+	}
+
+	switch (pin) {
+	case AF_PINCTRL_PIN_HWEN:
+		if (state == AF_PINCTRL_PINSTATE_LOW &&
+				!IS_ERR(af_hwen_low))
+			pinctrl_select_state(af_pinctrl, af_hwen_low);
+		else if (state == AF_PINCTRL_PINSTATE_HIGH &&
+				!IS_ERR(af_hwen_high))
+			pinctrl_select_state(af_pinctrl, af_hwen_high);
+		else
+			LOG_INF("set err, pin(%d) state(%d)\n", pin, state);
+		break;
+	default:
+		LOG_INF("set err, pin(%d) state(%d)\n", pin, state);
+		break;
+	}
+	LOG_INF("pin(%d) state(%d)\n", pin, state);
+
+	LOG_INF("-");
+
+	return ret;
+}
+
+/* PMIC */
+#if !defined(CONFIG_MTK_LEGACY)
+static struct regulator *regVCAMAF;
+static int g_regVCAMAFEn;
+
+static void AFRegulatorCtrl(int Stage)
+{
+	LOG_INF("AFIOC_S_SETPOWERCTRL regulator_put %p\n", regVCAMAF);
+
+	if (Stage == 0) {
+		if (regVCAMAF == NULL) {
+			struct device_node *node, *kd_node;
+
+			/* check if customer camera node defined */
+			node = of_find_compatible_node(
+				NULL, NULL, "mediatek,CAMERA_MAIN_AF");
+
+			if (node) {
+				kd_node = lens_device->of_node;
+				lens_device->of_node = node;
+
+				#if defined(CONFIG_MACH_MT6765)
+				regVCAMAF =
+					regulator_get(lens_device, "vldo28");
+				#elif defined(CONFIG_MACH_MT6768)
+				regVCAMAF =
+					regulator_get(lens_device, "vldo28");
+				#elif defined(CONFIG_MACH_MT6771)
+				regVCAMAF =
+					regulator_get(lens_device, "vldo28");
+				#elif defined(CONFIG_MACH_MT6833)
+				if (strncmp(CONFIG_ARCH_MTK_PROJECT,
+					"k6833v1_64_6360_alpha", 20) == 0) {
+					regVCAMAF =
+					regulator_get(lens_device, "vmch");
+				} else {
+					#if defined(CONFIG_REGULATOR_MT6317)
+					regVCAMAF =
+					regulator_get(lens_device, "mt6317-ldo3");
+					LOG_INF("regulator_get(%s)\n", "mt6317-ldo3");
+					#else
+					regVCAMAF =
+					regulator_get(lens_device, "vcamio");
+					LOG_INF("regulator_get(%s)\n", "vcamio");
+					#endif
+				}
+				#elif defined(CONFIG_MACH_MT6853)
+				if (strncmp(CONFIG_ARCH_MTK_PROJECT,
+					"k6853v1_64_6360_alpha", 20) == 0) {
+					regVCAMAF =
+					regulator_get(lens_device, "vmch");
+				} else {
+					regVCAMAF =
+					regulator_get(lens_device, "vcamio");
+				}
+				#elif defined(CONFIG_MACH_MT6873)
+				if (strncmp(CONFIG_ARCH_MTK_PROJECT,
+					"k6873v1_64_alpha", 16) == 0) {
+					regVCAMAF =
+					regulator_get(lens_device, "vmch");
+				} else {
+					regVCAMAF =
+					regulator_get(lens_device, "vcamio");
+				}
+				#elif defined(CONFIG_MACH_MT6781)
+				regVCAMAF =
+					regulator_get(lens_device, "vibr");
+				#elif defined(CONFIG_MACH_MT6885) || defined(CONFIG_MACH_MT6893)
+				if (strncmp(CONFIG_ARCH_MTK_PROJECT,
+					"k6885v1_64_alpha", 16) == 0) {
+					regVCAMAF =
+					regulator_get(lens_device, "vmc");
+				} else {
+					regVCAMAF =
+					regulator_get(lens_device, "vcamio");
+				}
+				#else
+				regVCAMAF =
+					regulator_get(lens_device, "vcamaf");
+				#endif
+
+				LOG_INF("[Init] regulator_get %p\n", regVCAMAF);
+
+				lens_device->of_node = kd_node;
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/misc/mediatek/lens/main/main_lens.c
 			}
 		}
 

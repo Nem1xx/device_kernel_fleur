@@ -202,6 +202,13 @@ endif
 obj-$(CONFIG_MTK_MT6382_BDG) += spi_slave_drv/
 obj-$(CONFIG_MTK_SDA) += sda/
 obj-$(CONFIG_MTK_MDDP_SUPPORT) += mddp/
+<<<<<<< HEAD
 obj-$(CONFIG_MTK_GATE_IC) += gate_ic/
 obj-$(CONFIG_MTK_FREQ_HOPPING) += freqhopping/
 obj-$(CONFIG_MTK_TASK_TURBO) += task_turbo/
+=======
+obj-$(CONFIG_MTK_USB2JTAG_SUPPORT) += usb2jtag/
+obj-y += subpmic/
+obj-$(CONFIG_MTK_OTP) += otp/
+obj-$(CONFIG_MTK_ULTRASND_PROXIMITY) += elliptic/
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)

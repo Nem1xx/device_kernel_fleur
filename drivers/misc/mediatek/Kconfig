@@ -2,6 +2,23 @@ source "drivers/misc/mediatek/Kconfig.default"
 source "drivers/misc/mediatek/usb20/Kconfig"
 source "drivers/misc/mediatek/cqdma/Kconfig"
 
+<<<<<<< HEAD
+=======
+menuconfig MEDIATEK_SOLUTION
+	bool "MediaTek Properitary Configuration"
+	select FW_LOADER_USER_HELPER_FALLBACK
+	select I2C
+	help
+	  Check this to enable MediaTek properity configuration.
+
+config BACKLIGHT_SUPPORT_2047_FEATURE
+        bool "enable backlight level 2047"
+        default n
+        help
+          If unsure, set N.
+
+if MEDIATEK_SOLUTION
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S)
 config MTK_PLATFORM
 	string "MTK platform name"
 
