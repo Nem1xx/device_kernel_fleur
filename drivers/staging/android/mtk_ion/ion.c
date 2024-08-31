@@ -765,7 +765,10 @@ struct ion_handle *__ion_alloc(struct ion_client *client, size_t len,
 #ifdef ION_HISTORY_RECORD
 	ion_history_count_kick(true, len);
 #endif
+<<<<<<< HEAD:drivers/staging/android/mtk_ion/ion.c
 #endif
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/staging/android/ion/ion.c
 
 	return handle;
 }
@@ -1497,7 +1500,12 @@ retry:
 						heap->ops->get_table(buffer,
 								a->table);
 					} else {
+<<<<<<< HEAD:drivers/staging/android/mtk_ion/ion.c
 						IONMSG("error, heap:%u get_table not support!\n",
+=======
+						IONMSG(
+						       "error, heap:%u get_table not support!\n",
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/staging/android/ion/ion.c
 						       heap->id);
 					}
 					mutex_unlock(&buffer->lock);
@@ -1804,7 +1812,10 @@ static void ion_dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long offset,
 		ion_buffer_kmap_put(buffer);
 		mutex_unlock(&buffer->lock);
 	}
+<<<<<<< HEAD:drivers/staging/android/mtk_ion/ion.c
 
+=======
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/staging/android/ion/ion.c
 }
 
 #ifdef MTK_ION_DMABUF_SUPPORT

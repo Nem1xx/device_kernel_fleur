@@ -102,10 +102,22 @@ long ion_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 				     data.allocation.heap_id_mask,
 				     data.allocation.flags, true);
 
+<<<<<<< HEAD:drivers/staging/android/mtk_ion/ion-ioctl.c
+=======
+		handle = __ion_alloc(
+						client, data.allocation.len,
+						data.allocation.align,
+						data.allocation.heap_id_mask,
+						data.allocation.flags, true);
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/staging/android/ion/ion-ioctl.c
 		if (IS_ERR(handle)) {
 			IONMSG("IOC_ALLOC handle invalid. ret = %d\n", ret);
 			return PTR_ERR(handle);
 		}
+<<<<<<< HEAD:drivers/staging/android/mtk_ion/ion-ioctl.c
+=======
+
+>>>>>>> 32022887f842 (Kernel: Xiaomi kernel changes for Redmi Note 11S Android S):drivers/staging/android/ion/ion-ioctl.c
 		data.allocation.handle = handle->id;
 		cleanup_handle = handle;
 		pass_to_user(handle);
